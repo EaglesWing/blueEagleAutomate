@@ -2317,10 +2317,6 @@ mainmodule.directive('trdeletebutton',function(){
                     scope.$parent.commservice.alert_message('warn',''+des_key+des+'失败',"未设置"+des+"", true)
                     return  false
                 } 
-                    if(id=="taskhistory"){
-			scope.$parent.commservice.alert_message('err',"确认任务完成失败", '体验环境不能确认完成任务操作')
-                        return false
-		    }
                 var loadinged=false
                 var dm=angular.element(scope.$parent.commservice.get_confirm_modal('请确认',message,'ui small modal'))
                 dm.modal('setting', 'onHidden', function(){
@@ -4148,8 +4144,6 @@ mainmodule.directive('upload',function(){
                 })
                 
                 md.find('.actions .button:eq(1)').click(function(){
-                    commservice.alert_message('err', '提交失败', "体验环境不能进行文件上传提交操作", true)
-                    return false
                     if(!file||!uploaddone||!filename){
                         commservice.alert_message('err',err_message, "请先上传文件", true)
                         return false
