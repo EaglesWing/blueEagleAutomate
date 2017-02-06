@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <div class="ui blue container segment taskhistorypage">
+        <div class="ui bottom attached segments pushable">
+            <div class="ui eight column padded grid attached segment">
+                <div class="column" style="margin-left:50px">
+                    <div class="ui relevanceapp selection dropdown">
+                        <input type="hidden" name="0">
+                        <i class="dropdown icon"></i>
+                        <div class="default text">关联任务分类</div>
+                        <div class="menu">
+                            <div class="item" data-value="0" >选择任务分类</div>
+                            <?py if _context.get('relevanceapp'):?>
+                                <?py for i in relevanceapp:?>
+                                    <div class="item" data-value="${i}">${relevanceapp[i]}</div>
+                                <?py #endfor ?>
+                            <?py #endif ?>
+                        </div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui selection relevanceinfo dropdown">
+                        <input type="hidden" name="product">
+                        <i class="dropdown icon"></i>
+                        <div class="default text">关联任务名称</div>
+                        <div class="menu">
+                            <div class="item" data-value="0" >选择关联名称</div>
+                            <?py if _context.get('relevanceinfo'):?>
+                                <?py for i in relevanceinfo:?>
+                                    <div class="item" data-value="${i}">${relevanceinfo[i]}</div>
+                                <?py #endfor ?>
+                            <?py #endif ?>
+                        </div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui selection status dropdown">
+                        <input type="hidden" name="gender">
+                        <i class="dropdown icon"></i>
+                        <div class="default text">选择状态</div>
+                        <div class="menu">
+                            <div class="item" data-value="0">选择状态</div>
+                            <div class="item" data-value="failed">失败</div>
+                            <div class="item" data-value="ready">倒计时</div>
+                            <div class="item" data-value="running">执行中</div>
+                            <div class="item" data-value="cancel">取消</div>
+                            <div class="item" data-value="success">成功</div>
+                            <div class="item" data-value="done">完成</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui date_start calendar" datetype="dateonly" calendar>
+                        <div class="ui input left icon">
+                            <i class="calendar icon"></i>
+                            <input type="text" placeholder="任务创建起始日期">
+                        </div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui date_end calendar" datetype="dateonly" calendar>
+                        <div class="ui input left icon">
+                            <i class="calendar icon"></i>
+                            <input type="text" placeholder="任务创建结束日期">
+                        </div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui action custominfo input">
+                        <input type="text" placeholder="搜索自定义任务名/类型">
+                        <button id="taskhistory" class="ui icon blue button" searchinfo>
+                            <i class="search icon"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui slider refreshpage checkbox" name="refreshpage" style="margin-top:10px" slider>
+                        <input type="checkbox" name="refreshpage">
+                        <label>暂停/开启刷新</label>
+                    </div>
+                </div>
+            </div>
+            <table class="ui celled  table" style="overflow:auto">
+                <thead>
+                    <tr>
+                        <th>关联id</th>
+                        <th>任务名称</th>
+                        <th>执行时间</th>
+                        <th>状态</th>
+                        <th>操作时间</th>
+                        <th>操作用户</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody name="taskhistory" gettaskhistory>
+                    <tr id="taskhistory" pageid="{{l.pid}}" pag="{{l.pagination}}" key="{{l.pid}}" ng-repeat="l in taskmanager.taskhistory.taskhistorylist.taskhistoryinfo" trhandle>
+                        <td keyname="{{x.value}}" class="{{x.key}}" ng-repeat="x in l.list" id="taskhistory" tdlable>{{x.value}}</td>
+                        <td class="opertion">
+                            <button id="taskhistory" class="ui blue basic button" newpage>详情</button>
+                            <div class="ui buttons">
+                                <button id="taskhistory" name="task_cancel" class="ui red  basic button" requestbutton>取消执行</button>
+                                <button id="taskhistory" name="task_restart" class="ui brown basic button taskrestart" requestbutton>重新执行</button>
+                            </div>
+                            <div class="ui buttons">
+                                <button id="taskhistory" class="ui green basic button" trdeletebutton>确认完成</button>
+                                <button id="taskhistory" class="ui teal basic button tasktimemodify" trmodifybutton>修改时间</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</html>

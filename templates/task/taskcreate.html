@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <div class="ui blue container segment">
+        <div class="ui bottom attached segment pushable" taskcreate>
+            <div class="ui push servergroup left visible sidebar vertical menu">
+                <div class="item">
+                    <div class="ui segment taskback">
+                        <div class="ui middle aligned animated link list"><a class="item">返回任务<i class="green backward icon" style="float:left"></i></a></div>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="ui fluid steps">
+                        <div class="ui fluid step">
+                            <i class="server icon"></i>
+                            <div class="content">
+                            <div class="title">主机组</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?py if _context.get('info'):?>
+                <div id="servergroup" class="leftdm ui accordion" accordion>
+                    <?py for l in info:?>
+                        <div name="${l}" id="relevanceapp" type="line" class="title bread"><i class="dropdown icon"></i> ${info[l]['des']} </div>
+                        <div class="content">
+                            <div class="accordion">
+                                <?py for p,v in info[l]['product'].iteritems():?>
+                                    <div name="${p}" id="relevancetype" type="product" class="title bread"><i class="dropdown icon"></i> ${v} </div>
+                                    <div class="content">
+                                        <div class="ui fluid massive secondary vertical pointing text menu transition visible" style="padding-left:3em !important">
+                                            <?py if _context.get('app'):?>
+                                                <?py for a in app[tuple([l, p])]:?>
+                                                    <a id="relevance" tasktype="relevance" line="${l}" product="${p}" id="app" class="item bread" name="${a}" secondarymenu>${app[tuple([l, p])][a]}</a>
+                                                <?py #endfor ?>
+                                            <?py #endif ?>
+                                        </div>
+                                    </div>
+                                <?py #endfor ?>    
+                            </div>
+                        </div>
+                    <?py #endfor ?>
+                </div>
+                <?py #endif ?>
+            </div>
+            <div class="ui push left taskrelevance visible sidebar vertical menu">
+                <div class="item">
+                    <div class="ui fluid steps">
+                        <div class="ui fluid step">
+                            <i class="tasks icon"></i>
+                            <div class="content">
+                            <div class="title">任务</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="taskrelevance" class="leftdm ui accordion" accordion>
+                    <div name="{{k}}" id="relevanceapp" class="title bread" ng-repeat="(k, v) in task.taskcreate.relevancehistory" relevancecontent><i class="dropdown icon"></i>{{v.des}}</div>
+                </div>
+            </div>
+            <div class="pusher" style="width:87%">
+                <div class="ui basic segment">
+                    <div class="ui breadcrumb">
+                        <i class="large home icon"></i>
+                        <i id="taskrelevance" key="k" class="right angle icon divider" ng-repeat="(k,v) in breadcrumblist"  domafterhandle></i>
+                    </div>
+                    <div class="ui segments">
+                        <div class="rightdm ui two column padded grid basic teal attached segment">
+                            <div class="column"></div>
+                            <button id="taskrelevance" class="positive ui button" dotaskrelevance>关联任务</button>
+                        </div>
+                        <div class="datadm ui basic grey segment" style="padding:0px">
+                            <div class="ui two column padded grid attached segment">
+                                <div class="column"></div>
+                                <div class="ui action input">
+                                    <input type="text" placeholder="搜索关联任务id">
+                                    <button id="relevancesearch" class="ui icon blue button ng-isolate-scope" searchinfo>
+                                        <i class="search icon"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <table class="ui table">
+                                <thead>
+                                    <tr>
+                                        <th>id</th>
+                                        <th>名称</th>
+                                        <th>操作时间</th>
+                                        <th>操作人</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody name="taskrelevancehistory" list="task.taskcreate.taskrelevancehistory" repeatdataupdate>
+                                    <tr id="taskrelevancehistory" pageid="{{l.pid}}" pag="{{l.pagination}}" key="{{l.pid}}" ng-repeat="l in task.taskcreate.taskrelevancehistory" trhandle>
+                                        <td ng-class="{'hide': x.key == 'id' }" class="{{x.key}}" ng-repeat="x in l.list">{{x.value}}</td>
+                                        <td>
+                                            <button id="taskrelevance" tasktype="update" class="mini ui green basic button" dotaskrelevance>详情/变更</button>
+                                            <button id="taskrelevancehistory" class="mini ui red basic button" trdeletebutton>删除</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>    
+            </div>    
+        </div>
+        
+    </div>
+</html>

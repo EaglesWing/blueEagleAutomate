@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <!-->只支持mysql数据库,不要修改xml标签名称和属性<-->
+    <config name="db">
+        <!-->db用户名,填写你登录数据的用户名称<-->
+        <user>{{db_user}}</user> 
+        <!-->db的ip地址<-->
+        <ip>{{db_ip}}</ip> 
+        <!-->db端口<-->
+        <port>{{db_port}}</port> 
+        <!-->db登录密码,执行python encrypt.py encode {{明文密码}},把返回的加密串填写pwd标签<-->
+        <pwd>{{db_pwd}}</pwd> 
+        <!-->实例名称<-->
+        <db_name>{{db_instance}}</db_name>
+    </config>
+</config>

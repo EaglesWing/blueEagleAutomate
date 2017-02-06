@@ -1,0 +1,40 @@
+<div class="ui modal" modalhidden>
+    <div class="header">任务确认</div>
+    <div class="content" style="padding:0.5em !important">
+        <?py if data.get('prepro') == "yes":?>
+        <div class="ui horizontal segments" style="margin-top:0px">
+            <div class="ui attached segment" style="padding:0px">
+                    <div class="ui warning message" message>
+                        <i class="close icon"></i>
+                    <div class="header">当前任务包含预处理任务 </div>可以传递参数给预处理任务,若不需要参数则不填;点击提交创建任务 </div>
+                    <div class="ui segments">
+                        <div class="ui segment" style="padding:5px">预处理任务参数</div>
+                        <div class="ui grey segment" style="padding:5px">
+                            <form class="ui form">
+                                <?py for i in xrange(0,2):?>
+                                    <?py if i > 0:i+=1?>
+                                    <div class="two fields" style="margin:0 0em 5px !important">
+                                        <div id="relevanceid" class="field">
+                                            <label>参数${i+1}</label>
+                                            <input type="text" placeholder="参数${i+1}" ng-model="task.groupselect.parameter.p${i+1}">
+                                        </div>
+                                        <div id="relevancename" class="field">
+                                            <label>参数${i+2}</label>
+                                            <input type="text" placeholder="参数${i+2}" ng-model="task.groupselect.parameter.p${i+2}">
+                                        </div>
+                                    </div>
+                                <?py #endfor ?>
+                            </form>
+                        </div>
+                    </div>
+            </div> 
+        </div>
+        <?py else: ?>
+            <div class="" style="padding:5px">确定创建任务[${breadcrumblist.get('relevance')['des']}]?</div>
+        <?py #endif ?>
+    </div>
+    <div class="actions">
+        <div class="ui black deny button">取消</div>
+        <div class="ui positive right labeled icon button">提交<i class="checkmark icon"></i></div>
+    </div>
+</div>

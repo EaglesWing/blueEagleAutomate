@@ -1,0 +1,19 @@
+<div class="ui middle aligned animated  celled  list">
+    <?py if type=="user" or type == "privilege":?>
+        <div class="item" ng-repeat="(k,v) in dialogdata.left">
+            <div class="ui checkbox"  seta="{{$parent.dialogdata.leftkey(k)}}">
+                <!--div>左边监听右边</div-->
+                <input id="user" type="checkbox" name="{{k}}" right="$parent.dialogdata.rightkeyvalue" dialogleftcheck>
+                <label leftchecked>{{v}}</label>
+            </div>
+        </div>
+    <?py elif type == "group" or type == "account":?>
+        <div class="item" ng-repeat="k in dialogdata.left">
+            <div class="ui checkbox"  seta="{{$parent.dialogdata.leftkey(k)}}">
+                <!--div>左边监听右边</div-->
+                <input id="user" type="checkbox" name="{{k}}" right="$parent.dialogdata.rightkeyvalue" dialogleftcheck>
+                <label leftchecked>{{k}}</label>
+            </div>
+        </div>
+    <?py #endif ?>
+</div>

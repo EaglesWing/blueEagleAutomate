@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <!-->只支持mysql数据库,不要修改xml标签名称和属性<-->
+    <config name="tornado">
+        <log path="/log/tornado" name="tornado.log"></log>
+        <!-->tornado服务监听端口号,确保此端口防火墙规则配置正确<-->
+        <run port="{{tornado_port}}"></run>
+        <task tools="./tools/" file_path="./task/" client_log_save="./task/client_log/" ></task>
+        <!-->twisted服务ip地址和监听端口号,确保此配置防火墙规则配置正确<-->
+        <tw_server ip="{{twisted_ip}}" port="{{twisted_port}}"> </tw_server>
+    </config>
+</config>

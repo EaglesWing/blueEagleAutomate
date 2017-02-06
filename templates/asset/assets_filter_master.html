@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <div class="feild">
+        <div class="ui selection dropdown">
+            <input type="hidden" name="line">
+            <i class="dropdown icon"></i>
+            <div class="default text">产品线</div>
+            <div class="menu" accountfilter>
+                <div class="item" data-value="email">邮箱</div>
+                <div class="item" data-value="wechat">微信</div>
+            </div>
+        </div>
+    </div>
+    <div class="feild">
+        <div class="ui selection dropdown">
+            <input type="hidden" name="product">
+            <i class="dropdown icon"></i>
+            <div class="default text">业务</div>
+            <div class="menu" accountfilter>
+                <div class="item" data-value="email">邮箱</div>
+                <div class="item" data-value="wechat">微信</div>
+            </div>
+        </div>
+    </div>
+    <div class="feild">
+        <div class="ui selection dropdown">
+            <input type="hidden" name="app">
+            <i class="dropdown icon"></i>
+            <div class="default text">应用</div>
+            <div class="menu" accountfilter>
+                <div class="item" data-value="email">邮箱</div>
+                <div class="item" data-value="wechat">微信</div>
+            </div>
+        </div>
+    </div>
+    <?py if id in ["logintools", "logindefault"]:?>
+        <?py style='style=display:none'?>
+    <?py else:?>
+        <?py style=''?>
+    <?py #endif ?>
+    <div class="feild" ${style}>
+        <div class="ui selection dropdown">
+            <input type="hidden" name="idc">
+            <i class="dropdown icon"></i>
+            <div class="default text">机房</div>
+            <div class="menu" accountfilter>
+                <div class="item" data-value="email">邮箱</div>
+                <div class="item" data-value="wechat">微信</div>
+            </div>
+        </div>
+    </div>
+</html>

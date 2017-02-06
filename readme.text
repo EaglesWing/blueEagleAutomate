@@ -1,0 +1,401 @@
+一：介绍
+    "蓝鹰(下称平台)" 是一个运维平台化、任务自动化的一般解决方案, 主要面向运维人员;
+    主要解决资产管理、服务器登陆信息管理、任务自动化和日志可视化、信息收集等;详情见 '平台简介'
+    采用B/S + C/S模式开发;
+
+    前端(angularjs + semantic)：
+        后台数据和平台功能展现, 运行环境为谷歌浏览器;
+        
+    webServer(python tornado):    
+        用于和前端数据交互, 运行环境为linux;
+        需要安装python模块(见平台安装与启动);
+        
+    tcpServer(python twisted):
+        用于前端和client端数据交互, 运行环境为linux
+        需要安装python模块(见平台安装与启动);
+        
+    tcpClient(python Epoll + threading):
+        接收前端任务请求及任务调用,运行环境为linux;
+        若主机客户端模式为no, 则采用ssh方式调用任务(见平台简介);
+        不需要安装python模块, 使用os自带的python版本即可;
+        不能和tornado部署在同台服务器上;
+        部署方式1:
+            在平台上配置登陆信息;
+            平台主机管理-客户端管理-部署客户端;
+
+        部署方式2: 
+            拷贝daemon.py和comm_lib.py到eagleclient目录;
+            拷贝eagleclient目录到客户端服务器进行部署; 执行python  client.py start
+
+二：平台安装与启动
+    安装:
+        平台采用mysql数据库, mysql版本应该为5.6及以上, 数据库字/client/connection符集为 'utf8', 时间和os保持一致为标准时间;
+        平台为python实现, 版本为2.7.*到python3(不包含);
+        运行环境准备:
+            linux系统;
+            安装mysql5.6以上版本;
+            安装python2.7.*
+            
+        需要安装的python模块有:
+            tornado
+            MySQL-python  
+            torndb
+            futures
+            tenjin
+            PyCrypto
+            pexpect
+            twisted(linux下源码安装:http://twistedmatrix.com/trac/wiki/Downloads)
+
+    启动:
+        首次启动前修改配置文件:
+            config/db_config.xml:
+                数据库配置文件, 按照配置文件内说明填写
+                
+            config/tornado/config.xml:
+                tornado配置文件, 按照配置文件内说明填写
+                
+            config/twisted/config.xml
+                twisted配置文件, 按照配置文件内说明填写
+            
+            eagleclient/config/config.xml 
+                client配置文件, 按照配置文件内说明填写
+        
+        首次启动前生成表信息:
+            sql/exec_sql.sh:
+                修改配置文件后, 执行exec_sql.sh生成数据库表信息;
+                cd sql; sh exec_sql.sh
+                
+                注:
+                    此操作会预设平台登录用户admin、组admin和verify_key;
+                    也就是会重置admin登录信息、admin组成员和后台认证key信息,非首次操作需谨慎;
+        
+        启动tornado:
+            python eagle_tornado.py start
+            可选参数有<start|stop|restart|debug>
+            
+        启动twisted:
+            python eagle_twisted.py start
+            可选参数有<start|stop|restart|debug>
+
+    注1:
+        平台不支持windows, 运行系统环境为linux
+        
+    注2:
+        平台有文件上传功能, 若你对平台设置了nginx/apache类代理, 代理服务器需要支持文件上传功能;
+        否则, 你在进行文件上传操作时候需要直接访问tornado服务器地址, 上传文件大小不超过300M;
+    
+    特别注意:
+        需要确保os和db时间(包含数据库连接会话时间)一致, 统一为标准时间; 这对自动化任务至关重要;
+   
+三：平台简介
+    此项目不足之处会持续优化完善, 不定期更新, 这里只是平台能力简单介绍, 后续整理详细资料(帮助手册)集成到平台内部;
+    若你在使用过程中发现不足之处或BUG, 可以邮件到2414417456@qq.com, 也可以帮助修改更新, 共同完善项目, 在这里表示感谢!(*^__^*)
+    
+    平台体验环境:
+        地址:http://139.199.173.36:7010
+            admin/admin
+            为了环境安全考虑, 此环境不能进行用户密码修改和文件上传操作; vm带宽问题, 首次访问时候加载比较慢;
+            
+    登录页:
+        默认只有admin用户能登录, 登录前会提示设置密码, 应该保管好admin用户密码;
+        其他用户需要admin使用用户组管理添加用户信息才能登录, 首次登录会提示设置密码;
+        
+    首页:
+        首页界面为预留页面, 目前为空白;
+        
+    权限管理:
+        用户组管理:
+            管理平台用户组信息
+            
+        key管理:
+            管理后台接口认证key信息;
+            
+        权限分配:
+            对平台用户进行权限分配, 粒度最小化到每个请求, 组可以自定义;
+            其中admin组拥有平台所有权限;
+            
+        通知管理:
+            设置消息接收信息, 邮箱/微信;
+            主要用于任务执行完成后通知平台用户;
+            
+    资产管理:
+        资产管理:
+            管理资产信息;
+            统计资产信息;
+            资产变更记录;
+            也可以根据业务特征设置资产显示顺序;
+            
+        登录管理:
+            设置资产里服务器登录信息, 可以对单/多台服务器设置登录信息;
+            单台服务器登录信息设置
+                在登录管理界面搜索ip信息后使用 "登录设置/修改" 功能;
+                
+            默认登录管理:
+                根据资产特征, 设置多台服务器登录信息;
+                在默认登录管理界面过滤资产信息后设置;
+                登录信息可以为静态登录信息和动态获取登录信息;
+                若为动态获取, 则需要分别上传user/port/pwd获取工具, 这个工具执行返回值应该为0, 并且只能有一行信息输出;
+                
+            登录信息获取/设置规则:
+                若资产ip设置了单独的登录信息, 则使用此信息进行登录服务器;
+                否则, 从默认登录管理获取;
+                默认登录管理中, 登录信息获取规则为最小化到最大化匹配获取; 如:
+                    有资产信息A: a产品线-a业务-a应用-a机房-a负责人
+                    有资产信息B: a产品线-a业务-a应用-a机房
+                    资产A设置了登录信息, B没设置:
+                        在获取资产内服务器登录信息时候, 资产B和A登录信息都为A所设置的;
+                        
+                    资产A设置了登录信息, B也设置: 
+                        在获取资产内服务器登录信息时候;
+                            资产A登录信息为A所设置的;
+                            资产B登录信息也为A所设置的;
+                        
+                    资产A没设置登录信息, B设置:    
+                        在获取资产内服务器登录信息时候, 资产B和A登录信息都为B所设置的;
+                
+        初始化管理:
+            应用场景:
+                服务器配置还为默认出厂设置, 对服务器配置信息做初始化操作;
+                
+            服务器初始化:
+                对服务器配置信息做初始化操作
+                
+            初始化工具:
+                执行初始化操作的工具
+                
+            初始化登录:
+                服务器的初始登录信息, 支持静态/动态获取设置;
+
+    主机管理:
+        对业务使用中的资产进行分类管理;
+        此时, 资产相当于ip 池, 主机为任务管理的操作对象
+        
+        操作顺序:
+            添加主机分类;
+            添加主机组;
+            添加主机/成员;
+            
+        主机分类:
+            对主机组进行分类管理, 可进行迁移操作;
+            迁移后, 当前分类下的所有主机组(包含主机)将会变更到新的分类下
+            
+        主机组:
+            对主机进行管理, 可进行迁移操作、查看组员客户端状态、部署客户端操作;
+            主机组模式:
+                添加主机/成员时候会继承当前模式, 若需修改可以添加主机/成员后对主机使用变更操作;
+                yes:
+                    为yes则说明需要部署client, 执行任务时候使用socket和client通信方式;
+                    
+                no:
+                    为yes则说明需要部署client, 执行任务时候使用ssh登录服务器操作方式;
+                    缺点:
+                        此模式下执行任务时候, 若登录超时会多尝试2次, 效率慢;
+            
+            客户端状态/部署客户端操作:
+                此操作对象为当前主机组下的所有主机;
+            
+            迁移:
+                迁移后, 当前主机组下的所有主机主机将会变更到新的主机组下;
+                        
+            注:
+                id栏lable为主机组模式;
+                
+                
+        主机/成员:
+            主机组下的服务器信息, 可进行迁移操作、查看组员客户端状态、部署客户端、添加标签操作;
+            主机模式, 同上; 添加主机/成员时候会继承当前主机组模式, 若需修改可主机使用变更操作;
+            客户端状态/部署客户端操作:
+                此操作对象为当前主机;
+                
+            迁移:
+                迁移后, 当前主机将会变更到新的主机组下;
+                         
+            标签:
+                可以对当前主机添加一个或多个标签信息;
+                
+            注:
+                成员栏lable为 资产应用类型和主机模式
+                
+    任务管理:
+        需要确保os和db时间一直, 这对自动化任务至关重要;
+        任务创建:
+            在创建任务之前需要先进行"关联任务"操作, 关联之前应先使用自定义任务上传任务文件;
+            任务执行对象为主机组或主机;
+            任务执行时间:
+                立即执行:
+                    任务创建后立即运行任务
+                    
+                设置任务执行时间:
+                    创建任务后, 到了执行时间才运行
+                    
+            关联任务:
+                任务依赖:
+                    若开启此功能, 则调用任务时候所有主机的执行会产生依赖, 即上一步完成后才进行下一步任务;
+                    若上一步任务有主机执行失败, 则所有主机停止任务执行;
+                    
+                    若没开启此功能, 主机间任务执行互不影响;
+                    
+                任务推送路径:
+                    任务文件都推送到此路径下调用, 登录用户权限需要配置正确; 并且, 主机模式为no时候需要确保此文件路径存在; 
+                    默认为/tmp/${relevance_id}/${task_name}/
+                    ${relevance_id}:关联任务ID,
+                    ${task_name}:任务名称
+                    
+                任务执行范围:
+                    控制当前步骤任务需要在什么应用服务器上运行;
+                    为空则为所有类型都运行, 默认为空;
+                    
+                是否执行:
+                    当前步骤任务是否需要执行, 若为no, 则只进行文件推送操作, 默认为yes;
+                    
+                信息收集:
+                    当前任务执行结果进行信息收集操作(收集规则见 '信息收集');
+                    为空则不进行, 默认为空
+            
+                预处理任务:
+                    每个关联任务可以设置一个预处理任务和多个预处理文件推送, 按需设置;
+                    预处理任务及其推送文件在任务执行时间前调用;
+                    预处理任务执行时间:
+                        单位为分, 在任务执行时间前多少分执行预处理任务;
+                    推送文件:
+                        推送文件为经预处理任务生成的文件, 推送文件路径为预处理任务生成文件的绝对路径;
+                    
+            
+        任务记录:
+            自动化任务执行记录
+            此页面每隔5秒会自动刷新, 默认不显示确认为完成的任务;
+            
+            取消执行:
+                取消执行当前任务, 若任务在运行, 则到服务器上停止任务(kill方式)
+                
+            重新执行:
+                重新执行当前任务, 当前任务下的所有任务重新执行
+                
+            确认完成:
+                当不需要对任务进行操作时, 使用此功能;
+                
+            修改任务执行时间:
+                修改任务状态为非runing的任务执行时间
+                
+            详情:
+                展示当前任务的详细信息, 包含主机信息和任务文件执行信息;
+                详情界面6秒刷新一次;
+                显示任务日志:
+                    点击详情页面任务信息, 动态显示当前任务log;
+                    
+                下载日志:
+                    下载当前任务的执行日志
+                    
+                重新执行:
+                    重新执行当前服务器上当前任务的当前步骤任务文件;
+                    这里不同于任务记录的'重新执行'功能, 这里属于单独执行次任务文件;
+            
+        自定义任务:
+            上传任务文件到服务器, 为任务关联提供, 相当于任务池;
+            
+        信息收集:
+            通过任务配置信息收集模板活接口使用此功能;
+            格式:
+                json格式或a=>b:::c=>d格式(相当于一维哈希;且只支持一维)
+                
+            模板管理:
+                设置信息收集的模板
+                    
+            信息收集:
+                展示收集信息
+    接口:
+        获取主机组信息:
+            http://{{tornado_ip}}:{{tornado_port}}/interface/get_group_info?line={{line_name}}&product={{product_name}}&app={{app_name}}&group={{group_name}}&verify_key={{key_value}}
+            tornado_ip:   tornado服务器ip地址, 必须
+            tornado_port: tornado服务器端口号, 必须
+            line_name:    产品线名称, 必须
+            product_name: 业务名称, 必须
+            app_name:     主机分类名称, 必须
+            group_name:   主机组名称, 必须
+            key_value:    后台认证key(verify_key)的值, 必须
+            
+        资产查询:
+            http://{{tornado_ip}}:{{tornado_port}}/interface/asset_search?verify_key={{key_value}}
+            tornado_ip:   tornado服务器ip地址, 必须
+            tornado_port: tornado服务器端口号, 必须
+            key_value:    后台认证key(verify_key)的值, 必须
+            
+        组成员导入:
+            可以配合资产查询使用
+            assetapp 为资产的app, app 为主机组分类
+            http://{{tornado_ip}}:{{tornado_port}}/interface/group_member_add?ine={{line_name}}&product={{product_name}}&group={{group_name}}&name={{member_ip}}&app={{app_name}}&assetapp={{assetapp}}&c_user={{opertion_user}}&verify_key={{key_value}}  
+            tornado_ip:     tornado服务器ip地址, 必须
+            tornado_port:   tornado服务器端口号, 必须
+            line_name:      产品线名称, 必须
+            product_name:   业务名称, 必须
+            app_name:       主机分类名称, 必须
+            group_name:     主机组名称, 必须
+            member_ip:      需要导入的主机ip
+            opertion_user:  操作用户(平台用户)
+            assetapp:       资产应用类型(asset_search获取)
+            key_value:      后台认证key(verify_key)的值, 必须
+
+        获取ip登录信息:
+            http://{{tornado_ip}}:{{tornado_port}}/interface/get_server_loginfo?iplist={{iplist}}&verify_key={{key_value}} 
+            tornado_ip:     tornado服务器ip地址, 必须
+            tornado_port:   tornado服务器端口号, 必须
+            iplist:         需要获取登录信息的ip, 多个用逗号分割
+            key_value:      后台认证key(verify_key)的值, 必须
+            
+            
+        获取主机组成员信息:
+            http://{{tornado_ip}}:{{tornado_port}}/interface/get_server_info?line={{line_name}}&product={{product_name}}&app={{app_name}}&group={{group_name}}&verify_key={{key_value}}  
+            tornado_ip:     tornado服务器ip地址, 必须
+            tornado_port:   tornado服务器端口号, 必须
+            line_name:      产品线名称, 必须
+            product_name:   业务名称, 必须
+            app_name:       主机分类名称, 必须
+            group_name:     主机组名称, 必须
+            key_value:      后台认证key(verify_key)的值, 必须
+            
+        获取产品线-业务信息:
+            http://{{tornado_ip}}:{{tornado_port}}/interface/get_login_list?verify_key={{key_value}}
+            tornado_ip:     tornado服务器ip地址, 必须
+            tornado_port:   tornado服务器端口号, 必须
+            key_value:      后台认证key(verify_key)的值, 必须
+            
+        获取主机分类-主机组信息:
+            http://{{tornado_ip}}:{{tornado_port}}/interface/get_servergroup_info?line={{line_name}}&product={{product_name}}&verify_key={{key_value}}
+            tornado_ip:     tornado服务器ip地址, 必须
+            tornado_port:   tornado服务器端口号, 必须
+            line_name:      产品线名称, 必须
+            product_name:   业务名称, 必须
+            key_value:      后台认证key(verify_key)的值, 必须
+            
+        信息收集:
+            http://{{tornado_ip}}:{{tornado_port}}/interface/add_informationcollect?ip={{ip}}&template_id={{template_id}}&info={{info}}&verify_key={{key_value}}
+            tornado_ip:     tornado服务器ip地址, 必须
+            tornado_port:   tornado服务器端口号, 必须
+            ip:             收集信息的ip地址, 必须
+            template_id:    信息收集模板id, 必须
+            info:           收集的信息, 必须 
+            key_value:      后台认证key(verify_key)的值, 必须
+            
+    后台工具(serverlogin):
+        usage:
+            -[h|H]            查看帮助
+            
+            登录方式1(默认):
+                -[l|L]        菜单方式登录主机组服务器
+                    f         菜单登录下,跳转到首级菜单
+                    p         菜单登录下,跳转到上级菜单
+                    e         菜单登录下,退出菜单
+    
+            登录方式2:
+                --ip      指定需要操作的服务器IP地址(资产内的ip信息,逗号分割),如(--ip '192.168.1.1,192.168.1.2')
+                        
+            主机组操作:
+                -[g|G]    指定需要操作的主机组名称,如(-g group1)
+                -[a|A]    和-[g|G]一起使用,若你确定当前group唯一或对当前匹配的组进行操作
+                --line    和-[g|G]一起使用指定group所属的产品线
+                --product 和-[g|G]一起使用指定group所属的业务
+                --app     和-[g|G]一起使用指定group所属的类型
+                
+            -[c|C]        登录方式2/主机组操作 登录服务器并执行命令
+            -[f|F]        登录方式2/主机组操作 登录服务器并执行文件
+            -[n|N]        和-[f|F]一起使用, 只传文件,不执行

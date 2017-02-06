@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <title>蓝鹰</title>
+        <meta contebt="text/html" charset="utf-8">
+        <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-ico">
+        <link rel="stylesheet" type="text/css" href="/static/css/semantic/semantic.min.css">
+        <link rel="stylesheet" type="text/css" href="/static/css/calendar.min.css">
+        <link rel="stylesheet" type="text/css" href="/static/css/main.css">
+        <script src="/static/js/jquery.js" type="text/javascript"></script>
+        <script src="/static/js/angular.js" type="text/javascript"></script>
+        <script src="/static/js/semantic.min.js" type="text/javascript"></script>
+        <script src="/static/js/service.js" type="text/javascript"></script>
+        <script src="/static/js/tablesort.js" type="text/javascript"></script>
+        <script src="/static/js/calendar.min.js" type="text/javascript"></script>
+        <script src="/static/js/main.js" type="text/javascript"></script>
+    </head>
+    <body ng-app="mainmodule" ng-controller="mainctrl">
+        <div class="global">
+            <div  class="head">
+                <div class="ui raised  top tabular menu container segment" menuactive>
+                    <div class="replaceactive ui simple pointing dropdown link item" name="main" >
+						<span class="text">首页</span>
+					</div>
+                    <div name="privilege" class="ui simple pointing dropdown link item">
+						<span class="text">权限管理</span>
+						<div class="menu childrenmenu">
+                            <div id="usergroup" class="item">用户组管理</div>
+                            <div id="key" class="item">key管理</div>
+                            <div id="privilege" class="item">权限分配</div>
+                            <div id="inform" class="item">通知管理</div>
+                        </div>
+					</div>
+                    <div name="asset" class="ui simple pointing dropdown link item">
+                        <span class="text">资产管理</span>
+                        <div class="menu childrenmenu">
+                            <div id="asset" class="item">资产管理</div>
+                            <div id="serverlogin" class="item">登录管理</div>
+                            <div id="serverinit" class="item">初始化管理</div>
+                        </div>
+                    </div>
+                    <div name="host" class="ui simple pointing dropdown link item">
+						<span class="text">主机管理</span>
+						<div class="menu childrenmenu">
+                            <div id="servergroup" class="item">主机组管理</div>
+                        </div>
+					</div>
+                    <div name="task"  class="ui simple pointing dropdown link item">
+						<span class="text">任务管理</span>
+						<div class="menu childrenmenu">
+                            <div id="taskcreate" class="item">任务创建</div>
+                            <div id="taskhistory" class="item">任务记录</div>
+                            <div id="taskcustom" class="item">自定义任务</div>
+                            <div id="informationcollect" class="item">信息收集</div>
+                        </div>
+					</div>
+                    <div class="right two item menu">
+                        <div class="loginstatus item">
+                            <div class="extra content">
+                                <div class="right floated author">
+                                    <img class="ui avatar image" src="/static/img/matt.jpg">
+                                </div>
+                                <div class="ui cards">
+                                    <div class="card">
+                                        <div class="content">
+                                            <img class="right floated mini ui image" src="/static/img/matt.jpg">
+                                            <div class="header">${username}</div>
+                                            <div class="meta">当前登录用户</div>
+                                            <div class="description">你可以保持登录/退出登录</div>
+                                        </div>
+                                        <div class="extra content">
+                                        <div class="ui two buttons">
+                                            <div class="ui button">保持登录</div>
+                                            <div class="or">or</div>
+                                            <div class="ui positive button" loginout>退出登录</div>
+                                        </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="item datatime" datatime></div>
+                </div>
+                </div>
+
+            </div>
+            <div class="ui divider"></div>
+            <div  class="body"></div>
+            <div id="tail">
+            </div>
+        </div>
+    </body>
+</html>

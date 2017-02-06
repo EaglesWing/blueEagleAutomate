@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <div class="ui buttons">
+        <button id="${key1}" class="ui teal  button" trmodifybutton>登录设置/修改</button>
+        <div class="or"></div>
+        <button id="${key2}"  popuptype="flowing" class="ui blue  button" data-position="bottom center" datacontent>动态登录工具</button>
+        <div class="ui flowing popup bottom center transition hidden">
+            <div class="ui buttons">
+                <button id="loginuser" class="ui red basic button"   data-variation="inverted" data-content="上传用户名获取工具,工具执行退出返回值应为0,且只能有用明文户名输出;执行时候会把当前条件下'ip/产品线/业务/应用/机房/负责人'信息按序传给工具,按需获取" datacontent upload>用户名</button>
+                <button id="loginport" class="ui blue basic button"   data-variation="inverted" data-content="上传端口获取工具,工具执行退出返回值应为0,且只能有明文端口输出;执行时候会把当前条件下'登录用户/ip/产品线/业务/应用/机房/负责人'信息按序传给工具,按需获取" datacontent upload>端口</button>
+                <button id="loginpwd" class="ui green basic button"   data-variation="inverted" data-content="上传用户名密码获取工具,工具执行退出返回值应为0,且只能有明文用户名密码输出;执行时候会把当前条件下'登录用户/端口/ip/产品线/业务/应用/机房/负责人'信息按序传给工具,按需获取" datacontent upload>密码</button>
+            </div>
+        </div>
+    </div>
+</html>

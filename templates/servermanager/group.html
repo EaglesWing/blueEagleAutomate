@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <div class="ui blue container segment">
+        <div class="ui bottom attached segment pushable" servergroup>
+            <!--div class="ui scale down left visible sidebar vertical menu"-->
+            <div class="ui push left visible sidebar vertical menu">
+                <div class="item">
+                    <div class="ui fluid steps">
+                        <div class="ui fluid step">
+                            <i class="server icon"></i>
+                            <div class="content">
+                            <div class="title">主机组</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?py if _context.get('info'):?>
+
+                <div id="servergroup" class="leftdm ui accordion">
+                    <?py for l in info:?>
+                        <div name="${l}" id="line" class="title bread"><i class="dropdown icon"></i> ${info[l]['des']} </div>
+                        <div class="content">
+                            <div class="accordion">
+                                <?py for p,v in info[l]['product'].iteritems():?>
+                                    <div name="${p}" id="product" class="title bread"><i class="dropdown icon"></i> ${v} </div>
+                                    <div class="content">
+                                        <div class="accordion">
+                                            <repeatdataupdate name="servergroup" list="servermanager.servergroup.appgrouplist.${l}_and_${p}" ></repeatdataupdate>
+                                            <div id="app" class="title bread" key="v" name="{{k}}" ng-repeat="(k,v) in servermanager.servergroup.appgrouplist.${l}_and_${p}" domafterhandle><i class="dropdown icon"></i> {{v.des}}</div>
+                                        </div>
+                                    </div>
+                                <?py #endfor ?>    
+                            </div>
+                        </div>
+                    <?py #endfor ?>
+                </div>
+                <?py #endif ?>
+            </div>
+            <div class="pusher" style="width:87%">
+                <div class="ui basic segment">
+                    <div class="ui breadcrumb">
+                        <i class="large home icon"></i>
+                        <i id="servergroup" key="k" class="right angle icon divider" ng-repeat="(k,v) in breadcrumblist"  domafterhandle></i>
+                    </div>
+                    <div class="rightdm ui basic grey segment"></div>
+                </div>    
+            </div>    
+        </div>
+    </div>
+</html>

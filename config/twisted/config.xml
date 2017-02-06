@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <!-->不要修改xml标签名称和属性<-->
+    <config name="twsited">
+        <log path="/log/twsited" name="twsited.log"></log>
+        <!-->twisted服务监听端口号,确保此端口防火墙规则配置正确<-->
+        <run port="{{twisted_port}}"></run>
+        <!-->twisted服务监听地址,确保此端口防火墙规则配置正确<-->
+        <client ip="{{twisted_ip}}"></client>	
+    </config>
+</config>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <?py if _context.get('tasktype'):?>
+        <?py style='style=height:47.6em'?>
+        <?py stylea='style=padding:0px'?>
+    <?py else: ?>
+        <?py style=''?>
+        <?py stylea=''?>
+    <?py #endif ?>
+    <div class="ui blue container segment" ${stylea} ${style}>
+        <div class="ui bottom attached segments pushable" ${style}>
+            <div class="ui two column padded grid attached segment">
+                <div class="column"></div>
+                <?py if not _context.get('tasktype'):?>
+                    <button id="taskcustom" class="positive ui button" addinfo>添加任务</button>
+                <?py #endif ?>
+                <div class="ui action input">
+                    <input type="text" placeholder="搜索id/名称">
+                    <button id="taskcustom" class="ui icon blue button" searchinfo>
+                        <i class="search icon"></i>
+                    </button>
+                </div>
+            </div>
+            <table class="ui sortable celled  table" style="overflow:auto">
+                <thead>
+                    <tr>
+                        <?py if not _context.get('tasktype'):?>
+                            <th>ID</th>
+                            <th>文件名</th>
+                            <th>名称</th>
+                            <th>备注</th>
+                            <th>操作时间</th>
+                            <th>操作用户</th>
+                            <th>操作</th>
+                        <?py else: ?>
+                            <th><i class="circular teal loading help circle icon"  data-variation="inverted" data-content="选择添加任务信息到左边关联任务下" datacontent></i>选择</th>
+                            <th>文件名</th>
+                            <th>名称</th>
+                        <?py #endif ?>
+                    </tr>
+                </thead>
+                <tbody name="taskcustom" tasktype="${_context.get('tasktype')}" list="taskmanager.taskcustom.taskinfolist.taskinfo" repeatdataupdate>
+                    <tr id="taskcustom" pageid="{{l.pid}}" pag="{{l.pagination}}" key="{{l.pid}}" ng-repeat="l in taskmanager.taskcustom.taskinfolist.taskinfo" trhandle>
+                        <?py if  _context.get('tasktype'):?>
+                            <td>
+                                <div id="taskrelevance" class="ui checkbox" checkbox> 
+                                    <input type="checkbox">
+                                </div>
+                            </td>
+                        <?py #endif ?>
+                        <td class="{{x.key}}" ng-repeat="x in l.list" id="taskcustom" tasktype="${_context.get('tasktype')}" tdlable>{{x.value}}</td>
+                        <?py if not _context.get('tasktype'):?>
+                            <td class="opertion">
+                                <button id="taskcustom" class="ui red basic button" trdeletebutton>删除</button>
+                                <button id="taskcustom" class="ui brown basic button" upload>上传/更新</button>
+                                <button id="taskcustom" class="ui green basic button" download>下载</button>
+                                <button id="taskcustom" class="ui teal basic button" resultbutton>记录</button>
+                            </td>
+                        <?py #endif ?>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <div class="ui blue container segment">
+        <div class="ui pointing secondary menu">
+            <a class="item active" data-tab="logininfo">登录管理</a>
+            <a class="item" data-tab="logindefault">默认登录管理</a>
+            <!--a class="item" data-tab="logintools">动态登录管理</a-->
+        </div>
+        <div class="ui tab active" data-tab="logininfo">
+            <div class="ui two column padded grid">
+                <div class="column"></div>
+                <div class="feild" style="display:flex">
+                    <div id="" name="assetfilter" style="padding-right:0px;float:left" textareaset>
+                        <div class="ui form" style="padding-right:0px">
+                            <div class="field">
+                                <textarea rows="1" placeholder="输入ip信息,换行分割"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="padding-left:0px;position:relative;float:left">
+                        <button id="assetfilter" name="loginmanager" class="ui icon blue button" style="height:38px;border-radius:0 .28571429rem .28571429rem 0;display:flex" searchinfo>
+                            <i class="search icon"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <table class="ui sortable celled table">
+                <thead>
+                    <tr>
+                        <th>电信ip</th>
+                        <th>联通ip</th>
+                        <th>内网ip</th>
+                        <th class='hide'>登录用户</th>
+                        <th class='hide'>登录端口</th>
+                        <th class='hide'>登录密码</th>
+                        <th>登录详情</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                    <tbody list="asset.assetmanager.asset.assetlist" repeatdataupdate>
+                        <tr pageid="{{l.pid}}" pag="{{l.pagination}}" key="assetsinfo" ng-repeat="l in asset.assetmanager.asset.assetlist" trhandle>
+                            <td ng-class="{'hide': x.key=='pwd' || x.key=='user' || x.key=='port'}" class="{{x.key}}" ng-repeat="x in l.list">{{x.value}}</td>
+                            <td>
+                                <div class="ui animated fade button" tabindex="0" logindetail>
+                                    <div class="visible content"><i class="large loading spinner icon" name="loginmanger" key="l.list" serverinitreset></i></div>
+                                    <div class="hidden content">点击查看</div>
+                                </div>
+                            </td>
+                            <td class="opertion">
+                                <button id="loginmanager" class="ui primary basic button" trdetailbutton>服务器详情</button>
+                                <button id="loginmanager" class="ui positive basic button" trmodifybutton>登录设置/修改</button>
+                                <button id="loginmanager" class="ui negative basic button" trdeletebutton>删除</button>
+                                <button id="loginmanager" name="logincheck" class="ui violet basic button" trdeletebutton>登录检测</button>
+                            </td>
+                        </tr>
+                    </tbody>
+            </table>
+        </div>
+        
+        <div class="ui tab" data-tab="logindefault">
+            <div class="ui attached segment">
+                <?py include('./asset_filter.html', id="logindefault", freefeild="6", name="history")?>
+            </div>
+            <table class="ui sortable celled table">
+                <thead>
+                    <tr>
+                        <th>产品线</th>
+                        <th>业务</th>
+                        <th>应用</th>
+                        <th>机房</th>
+                        <th>负责人</th>
+                        <th class='hide'>登录用户</th>
+                        <th class='hide'>登录端口</th>
+                        <th class='hide'>登录密码</th>
+                        <th>登录详情</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody list="asset.assetmanager.asset.historyassetlist" repeatdataupdate>
+                    <tr pageid="{{l.pid}}" pag="{{l.pagination}}" key="assetsinfo"  keytype="logindefault" ng-repeat="l in asset.assetmanager.asset.historyassetlist" trhandle>
+                        <td ng-class="{'hide': x.key=='pwd' || x.key=='user' || x.key=='port'}" class="{{x.key}}"  ng-repeat="x in l.list">{{x.value}}</td>
+                        <td>
+                            <div class="ui animated fade button" tabindex="0" logindetail>
+                                <div class="visible content"><i class="large loading spinner icon" name="icondetail" key="l.list" serverinitreset></i></div>
+                                <div class="hidden content">点击查看</div>
+                            </div>
+                        </td>
+                        <td class="opertion">
+                            <?py include('./logintools.html', key1='logindefault', key2='logintools')?>
+                            <button id="logintools" class="ui negative basic button" trdeletebutton>删除</button>
+                            <button id="logintools" name="logincheck" class="ui violet basic button" trdeletebutton>登录检测</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+</html>

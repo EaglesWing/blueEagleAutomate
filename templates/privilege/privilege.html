@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <div class="ui blue container segment">
+        <div class="ui pointing secondary menu">
+            <a class="item active" data-tab="privilege_allot">权限分配</a>
+            <a class="item" data-tab="privilege_list">权限列表</a>
+        </div>
+        <div class="ui tab active" data-tab="privilege_allot">
+            <div class="ui two column padded grid">
+                <div class="column"></div>
+                <div class="ui search">
+                    <div class="ui icon input">
+                        <input id="privilege" class="prompt" type="text" placeholder="搜索组" localsearch>
+                        <i class="search icon"></i>
+                    </div>
+                    <div class="results"></div>
+                </div>
+            </div>
+            <table class="ui  table">
+                <thead>
+                    <tr>
+                        <th>组名称</th>
+                        <th>描述</th>
+                        <th>权限变更时间</th>
+                        <th>权限变更操作人</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody list="privilege.privilege.privilegelist" repeatdataupdate>
+                    <tr ng-repeat="x in privilege.privilege.privilegelist">
+                        <td class="name">{{x.name}}</td>
+                        <td>{{x.des}}</td>
+                        <td>{{x.c_time}}</td>
+                        <td>{{x.c_user}}</td>
+                        <td>
+                            <button id="privilege" class="mini ui green basic button" ng-class="{disabled: x.selfgroup != 'admin'}" opertiondialog>权限变更</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="ui tab" data-tab="privilege_list">
+            <div class="ui two column padded grid">
+                <div class="column"></div>
+                <div class="ui search">
+                    <div class="ui icon input">
+                        <input id="privilegepool" class="prompt" type="text" placeholder="搜索权限信息" localsearch>
+                        <i class="search icon"></i>
+                    </div>
+                    <div class="results"></div>
+                </div>
+            </div>
+            <table class="ui  table">
+                <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>描述</th>
+                        <th>备注</th>
+                    </tr>
+                </thead>
+                <tbody list="privilege.privilege.privilegepool" repeatdataupdate>
+                    <tr ng-repeat="x in privilege.privilege.privilegepool">
+                        <td>{{x.name}}</td>
+                        <td class="des">{{x.des}}</td>
+                        <td class="remark">{{x.remark}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+    
+</html>
