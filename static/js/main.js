@@ -3331,7 +3331,7 @@ mainmodule.directive('dotaskrelevance',function(){
                     })
                     md.find('div#relevancerely.checkbox').checkbox('setting', 'onChecked' ,function(){
                         scope.$parent.task.taskcreate.relevance.relevancerely='yes'
-                        commservice.alert_message('warn', "注意", "你开启了任务依赖,所有主机任务将串行执行",  true)
+                        commservice.alert_message('warn', "注意", "你开启了任务依赖,主机所有任务将串行执行",  true)
                     })
 
                     md.find('div#relevancetype div.dropdown').dropdown('setting', 'onChange', function(){
