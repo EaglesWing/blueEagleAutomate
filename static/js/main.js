@@ -2317,10 +2317,6 @@ mainmodule.directive('trdeletebutton',function(){
                     scope.$parent.commservice.alert_message('warn',''+des_key+des+'失败',"未设置"+des+"", true)
                     return  false
                 } 
-                    if(id=="taskhistory"){
-			scope.$parent.commservice.alert_message('err',"确认任务完成失败", '体验环境不能确认完成任务操作')
-                        return false
-		    }
                 var loadinged=false
                 var dm=angular.element(scope.$parent.commservice.get_confirm_modal('请确认',message,'ui small modal'))
                 dm.modal('setting', 'onHidden', function(){
@@ -3221,6 +3217,8 @@ mainmodule.directive('dotaskrelevance',function(){
                         scope.$parent.input_check()
                     })
                     scope.$parent.task.taskcreate.relevance.dotype=''
+                    md.find('div.dropdown').dropdown()
+
                     if(tasktype=="update"){
                         scope.$parent.task.taskcreate.relevance.dotype='update'
                         setTimeout(function(){
@@ -3335,13 +3333,15 @@ mainmodule.directive('dotaskrelevance',function(){
                         scope.$parent.task.taskcreate.relevance.relevancerely='yes'
                         commservice.alert_message('warn', "注意", "你开启了任务依赖,所有主机任务将串行执行",  true)
                     })
-                    md.find('div#relevancetype select option').change(function(){
-                        var ttm=angular.element(event.target)
-                        var ttp=ttm.attr('value')
-                        var ttpdes=ttm.text().trim()
+
+                    md.find('div#relevancetype div.dropdown').dropdown('setting', 'onChange', function(){
+                        var ttm=md.find('div#relevancetype div.dropdown')
+                        var ttp=ttm.dropdown('get value')
+                        var ttpdes=ttm.dropdown('get text')
                         scope.$parent.task.taskcreate.relevance.relevancetype=ttp
                         scope.$parent.task.taskcreate.relevance.relevancetypedes=ttpdes
-                    })
+                    })  
+
                     md.find('div#relevanceapp.menu div:not(.message)').click(function(){
                         var ttm=angular.element(event.target)
                         var app=ttm.attr('data-value')
@@ -3350,7 +3350,6 @@ mainmodule.directive('dotaskrelevance',function(){
                         scope.$parent.task.taskcreate.relevance.relevanceappdes=appdes
                     })
                     
-                    md.find('div.dropdown').dropdown()
                     setTimeout(function(){
                         md.find('div.dropdown').dropdown('hide')
                         md.find('div#relevanceapp .dropdown').dropdown('setting', 'onChange', function(){
@@ -4148,8 +4147,6 @@ mainmodule.directive('upload',function(){
                 })
                 
                 md.find('.actions .button:eq(1)').click(function(){
-                    commservice.alert_message('err', '提交失败', "体验环境不能进行文件上传提交操作", true)
-                    return false
                     if(!file||!uploaddone||!filename){
                         commservice.alert_message('err',err_message, "请先上传文件", true)
                         return false

@@ -1447,8 +1447,7 @@ class mainHandler(baseHandler):
         self-privilege::任务创建::任务管理-任务创建-下一步-提交
         '''
         if not time_check():
-            #return self.write(get_ret(-1, '创建任务失败;os和db时间不一致' ,status='err'))
-            pass
+            return self.write(get_ret(-1, '创建任务失败;os和db时间不一致' ,status='err'))
     
         data=self.args.get('data')
         self.task_exectime_check()
@@ -3919,7 +3918,7 @@ if __name__=="__main__":
 
     if not time_check():
        log.err('os and db time cmp err.')
-       #sys.exit()
+       sys.exit()
 
     help_msg = 'Usage: python %s <start|stop|restart|debug>' % sys.argv[0]
     eagle=eagledaemon(curr_path+'/tornado_pid.pid')

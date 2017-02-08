@@ -26,9 +26,14 @@
 
                                 <div id="relevancetype" class="field" >
                                     <label>任务类型</label>
-                                    <select class="ui fluid dropdown">
-                                        <option value="all">通用任务</option>
-                                    </select>
+                                    <div class="ui selection dropdown">
+                                        <input type="hidden" name="all">
+                                        <i class="dropdown icon"></i>
+                                        <div class="default text">通用任务</div>
+                                        <div class="menu">
+                                            <div class="item" data-value="all">通用任务</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="two fields" style="margin:0 0em 5px !important">

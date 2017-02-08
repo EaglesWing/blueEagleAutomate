@@ -494,7 +494,7 @@ class server_factory(Factory, clien):
                 if not download:
                    logdata='log file[%s] is not exists' % log_file
                 else:
-                   logresponse='notexists'
+                   logresponse='filenotexists'
             else:
                 if not download:
                     with open(log_file, 'rb') as f:
