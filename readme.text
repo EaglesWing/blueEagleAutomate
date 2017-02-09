@@ -29,7 +29,7 @@
 
 二：平台安装与启动
     安装:
-        平台采用mysql数据库, mysql版本应该为5.6及以上, 数据库字/client/connection符集为 'utf8';
+        平台采用mysql数据库, mysql版本应该为5.6及以上, 数据库字符集为'utf8'(包含client/connection);
         时间和os保持一致为标准时间;
         平台为python实现, 版本为2.7.*到python3(不包含);
         运行环境准备:
