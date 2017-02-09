@@ -3234,7 +3234,7 @@ mainmodule.directive('dotaskrelevance',function(){
                                 angular.element('div#relevanceapp div.dropdown').dropdown('set selected', tdd['relevance_app'])
                                 scope.$parent.task.taskcreate.relevance.relevanceappdes=tdd['relevance_app_des']
                                 scope.$parent.task.taskcreate.relevance.relevancetype=tdd['relevance_type']
-                                angular.element('div#relevancetype select').val(tdd['relevance_type'])
+                                angular.element('div#relevancetype div.dropdown').dropdown('set selected', tdd['relevance_type'])
                                 scope.$parent.task.taskcreate.relevance.relevancetypedes=tdd['relevance_type_des']
                                 scope.$parent.task.taskcreate.relevance.relevanceid=tdd['relevance_id']
                                 scope.$parent.task.taskcreate.relevance.relevancename=tdd['relevance_name']
