@@ -308,6 +308,11 @@
                     
             信息收集:
                 展示收集信息
+                
+        故障处理:
+            简单的处理故障记录
+                使用接口提交故障到平台(见接口),  然后使用此功能
+                
     接口:
         获取主机组信息:
             http://{{tornado_ip}}:{{tornado_port}}/interface/get_group_info?line={{line_name}}&product={{product_name}}&app={{app_name}}&group={{group_name}}&verify_key={{key_value}}
@@ -380,6 +385,17 @@
             template_id:    信息收集模板id, 必须
             info:           收集的信息, 必须 
             key_value:      后台认证key(verify_key)的值, 必须
+            
+        添加故障:
+            http://{{tornado_ip}}:{{tornado_port}}/interface/fault_add?ip={{ip}}&name={{name}}&key={{key}}&des={{des}}&verify_key={{key_value}}
+            tornado_ip:     tornado服务器ip地址, 必须
+            tornado_port:   tornado服务器端口号, 必须
+            ip:             发生故障的ip地址, 必须
+            name:           故障名称(可自定义), 必须
+            key:            故障key(可自定义), 可选
+            des:            故障简单描述, 可选
+            key_value:      后台认证key(verify_key)的值, 必须
+            
             
     后台工具(serverlogin):
         usage:

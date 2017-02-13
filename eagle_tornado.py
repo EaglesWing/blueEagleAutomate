@@ -477,7 +477,21 @@ class mainHandler(baseHandler):
                 'info':newinfo,
                 'app':applist
             }
-    
+
+    def get_fault_main_page(self):
+        '''
+        self-privilege::故障处理::任务管理-故障处理
+        '''
+        faultinfo=user_table.get_fault_info()
+        name=[]
+        info=[]
+        for i in faultinfo:
+            name.append(i['name'])
+            if str(i.get('status'))  == '1':
+                info.append(i)
+        context={'type':list(set(name))}
+        return self.write(tj_render('templates/task/fault_handle.html', context))
+
     def get_taskcreate_main_page(self):
         '''
         self-privilege::任务创建界面::任务管理-任务创建
@@ -1065,6 +1079,20 @@ class mainHandler(baseHandler):
         self.args['success']='关联任务成功'
         self.args['err']='关联任务失败'
         return self.do_addinfo()
+        
+    def add_info_fault_html(self):
+        '''
+        self-privilege::故障处理信息提交::任务管理-故障处理-操作
+        '''
+        id=self.args.get('id')
+        status=self.args.get('status')
+        remark=self.args.get('remark')
+        if not id or not status:
+            return self.write(get_ret(-1, '参数错误', status='err'))
+        if not user_table.fault_commit(id, status, remark, self.args['curruser']):
+            return self.write(get_ret(-2, '处理失败', status='err'))
+            
+        return self.write(get_ret(0, '处理成功', status='info'))
         
     def add_info_collecttemplate_html(self):
         '''
@@ -2668,6 +2696,20 @@ class mainHandler(baseHandler):
         if not user_table.serverinit_reset(ip):
             return self.write(get_ret(-1, '%s初始化状态设置失败' % ip, status='err'))
         return self.write(get_ret(0, '%s初始化状态设置成功' % ip, status='info'))
+
+    def fault_searchinfo(self):
+        '''
+        self-privilege::故障处理信息查找::任务管理-故障处理-搜索
+        '''
+        name=self.args.get('name')
+        status=self.args.get('status')
+        htime=self.args.get('htime')
+        zone=self.args.get('zone')
+        iplist=self.args.get('iplist')
+        info=user_table.get_fault_info(name=name, 
+                status=status, h_time=htime, zone=zone, iplist=iplist)
+        
+        self.write(json.dumps(self.get_pagination_data(info, [{'id':'id'}, {'ip':'ip'}, {'name':'名称'}, {'status':'状态'}, {'zone_name':'故障key'}, {'faultdes':'详情'}, {'remark':'处理记录'}, {'h_time':'发生时间'}, {'c_time':'处理时间'}, {'c_user':'处理人'}]), ensure_ascii=False)) 
         
     def serverinit_searchinfo(self):
         '''
@@ -3773,6 +3815,18 @@ class interfaceHandler(mainHandler):
         self.args['dotype']='mainpage'
         return self.write(json.dumps(self.do_get_servergroup_info(), ensure_ascii=False))
 
+    def fault_add(self):
+        '''self-method'''
+        ip=self.args.get('ip')
+        key=self.args.get('key')
+        name=self.args.get('name')
+        des=self.args.get('des')
+        if not ip or not name:
+            return self.write(get_ret(-2, '参数错误', status='err'))
+        user_table.fault_add(ip, name, zone=key, des=des)
+        return self.write(get_ret(0, '添加故障成功', status='info'))
+        
+        
     def get(self):
         if hasattr(self, self.method) and self.method in interfacelist:
             if callable(getattr(self, self.method)):

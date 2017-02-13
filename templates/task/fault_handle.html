@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <div class="ui blue container segment">
+        <div class="ui pointing secondary menu">
+            <a class="item active" data-tab="fault">信息收集</a>
+        </div>
+        <div class="ui tab active" data-tab="fault">
+            <div class="ui five column padded grid">
+                <div class="column"></div>
+                <div class="feild">
+                    <div class="ui form" id="fault" name="template" getdropmen>
+                        <select class="ui selection search dropdown faulttype">
+                            <option value="0">故障类型</option>
+                            <?py if _context.get('type'):?>
+                                <?py for k in _context.get('type'):?>
+                                    <option value="${k}">${k}</option>
+                                <?py #endfor ?>
+                            <?py #endif ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="feild">
+                    <div class="ui form" id="fault" name="template" getdropmen>
+                        <select class="ui selection search dropdown faultstate">
+                            <option value="0">故障状态</option>
+                            <option value="1">未处理</option>
+                            <option value="2">已处理</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="ui calendar" datetype="dateonly" calendar>
+                    <div class="ui input left icon">
+                        <i class="calendar icon"></i>
+                        <input type="text" placeholder="发生时间">
+                    </div>
+                </div>
+                <div class="feild">
+                    <div class="ui input faultzone">
+                        <input type="text" placeholder="游戏区">
+                    </div>
+                </div>
+                <div class="feild" style="display:flex">
+                    <div id="gmzone" name="assetfilter" style="padding-right:0px;float:left" textareaset>
+                        <div class="ui form" style="padding-right:0px">
+                            <div class="field">
+                                <textarea rows="1" placeholder="搜索ip,换行分割"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="padding-left:0px;position:relative;float:left">
+                        <button id="fault" class="ui icon blue button" style="height:38px;border-radius:0 .28571429rem .28571429rem 0;display:flex" searchinfo>
+                            <i class="search icon"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <table class="ui table">
+                <thead>
+                    <tr>
+                        <th>ip</th>
+                        <th>名称</th>
+                        <th>状态</th>
+                        <th>故障key</th>
+                        <th>详情</th>
+                        <th>发生时间</th>
+                        <th>处理时间</th>
+                        <th>处理人</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr id="fault" pageid="{{l.pid}}" pag="{{l.pagination}}" key="{{l.pid}}" ng-repeat="l in faultinfodata" trhandle>
+                        <td id="fault" ng-class="{'hide': x.key == 'id' || x.key == 'remark'}" class="{{x.key}}" ng-repeat="x in l.list">{{x.value}}</td>
+                        <td>
+                            <button id="fault" faultid="" class="mini ui blue basic button" resultbutton>详情</button>
+                            <button id="fault" faultid="" class="mini ui green basic button" addinfo>操作</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</html>

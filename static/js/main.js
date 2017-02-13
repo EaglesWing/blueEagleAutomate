@@ -183,6 +183,18 @@ mainmodule.controller('mainctrl', function($scope, commservice, $compile){
             }else{
                 d['pageid']=pageid
             }
+        }else if(id=="fault"){
+            dom=angular.element('button#fault[searchinfo=""]')
+            var tdmmm=dom.parent().parent().parent()
+            d['name']=tdmmm.find('.faulttype').dropdown('get value')
+            d['status']=tdmmm.find('.faultstate').dropdown('get value')
+            d['htime']=tdmmm.find('.calendar input').val()
+            d['zone']=tdmmm.find('.faultzone input').val()
+            d['iplist']=$scope.gmzonesearchlist
+            if(!d['name']&&!d['status']&&!d['htime']&&!d['zone']&&!d['iplist']){
+                return false
+            }
+            d['pageid']=pageid
             
         }else if(id=="taskhistory"){
             dom=angular.element('button#taskhistory[searchinfo=""]')
@@ -297,7 +309,13 @@ mainmodule.controller('mainctrl', function($scope, commservice, $compile){
                 }else{
                     $scope.task.taskcreate.taskrelevancehistory.push.apply($scope.task.taskcreate.taskrelevancehistory, dt['data'])
                 }
-
+            }else if(id=="fault"){
+                if(pageid){
+                    $scope.faultinfodata.push.apply($scope.faultinfodata, dt['data'])
+                }else{
+                    $scope.faultinfodata=dt['data']
+                }
+                
             }else if(id=="informationcollect"){
                 fdm=dom.parent().parent().parent()
                 if(pageid){
@@ -2050,6 +2068,20 @@ mainmodule.directive('resultbutton',function(){
                 if(id=="taskcustom"){
                     var task_id=trdm.find('.task_id').text().trim()
                     d['name']=task_id
+                }else if(id=="fault"){
+                    var remark=element.parent().parent().find('.remark').text().trim()
+                    var dt={
+                        'remark':{
+                            'type':'textarea',
+                            'name':'故障记录',
+                            'des':'故障处理记录'
+                        }
+                    }
+                    var context='<div class="ui segment">'+commservice.get_input_form("keyform", dt)+'</div>'
+                    var md=angular.element(commservice.get_standard_modal('故障处理记录', context))
+                    md.find('.remark').val(remark)
+                    md.modal('show')
+                    return false
                 }else if(id=="collecttemplatehistory"){
                     var template_id=trdm.find('td.template_id').text().trim()
                     var tid=trdm.find('td.id').text().trim()
@@ -3553,6 +3585,27 @@ mainmodule.directive('addinfo',function(){
                             'fieldattr':'style="display:none"'
                         },
                     }
+                }else if(id=="fault"){
+                    var title='故障处理'
+                    scope.fault={}
+                    scope.fault.id=element.parent().parent().find('.id').text().trim()
+                    var dt={
+                        'type':{
+                            'type':'dropdown',
+                            'name':'处理类型',
+                            'des':'选择处理类型',
+                            'menu':{
+                                '0':'故障状态',
+                                '1':'未处理',
+                                '2':'已处理'
+                            }
+                        },
+                        'remark':{
+                            'type':'textarea',
+                            'name':'处理信息',
+                            'des':'输入故障处理描述信息'
+                        }
+                    } 
                 }else if(id=="contactadd"){
                     var addkey=scope.$parent.privilege.inform
                     var title='添加联系人'
@@ -3805,7 +3858,14 @@ mainmodule.directive('addinfo',function(){
                                 check=true
                             }
                         }
-
+                    }else if(id=="fault"){
+                        d['id']=scope.fault.id
+                        d['status']=md.find('select').val()
+                        if(d['status']==0){
+                            d['status']=''
+                        }
+                        d['remark']=md.find('textarea.remark').val()
+                        check=scope.$parent.data_check(d)
                     }else if(id=="servergroup"){
                         d['name']=md.find('input[name="group"]').val()
                         d['des']=md.find('input[name="des"]').val()
@@ -4342,6 +4402,8 @@ mainmodule.directive('dropmeninfo',function(){
             var commservice=scope.$parent.commservice
             var compile=scope.$parent.compile
             scope.$parent.asset.assetmanager.dropmeninfoinit()
+            delete scope.$parent.breadcrumblist
+            scope.$parent.breadcrumblist={}
             
             var type=element.attr('id')
             var id=element.attr('name')

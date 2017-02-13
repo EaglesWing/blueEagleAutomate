@@ -97,6 +97,8 @@ class user_table(object):
         self.t_task_servers_history='t_task_servers_history'
         #任务主机/任务标记执行完成记录表
         self.t_task_done_history='t_task_done_history'
+        #故障处理
+        self.t_fault_handle='t_fault_handle'
 
     @sql_result('query')
     def get_now(self):
@@ -1233,3 +1235,33 @@ class user_table(object):
     def add_group_info(self, group, des, c_user):
         sql='insert into %s (name, des , c_time, c_user) values ("%s","%s", now(),"%s");' % (self.t_group_info, group, des, c_user)
         return  [self.db, sql]
+        
+    @sql_result('query')
+    def get_fault_info(self, name=None, zone=None, h_time=None, status=None, iplist=None):
+        sql='''select * from %s '''   % self.t_fault_handle
+        sql_str=''
+        if name and str(name) != '0':
+            sql_str+='''  where name='%s' '''  % name
+        if zone and str(zone) != '0':
+            sql_str+='''  and  zone_name='%s' '''  % zone
+        if status and str(status) != '0':
+            sql_str+='''  and  status='%s' '''  % status
+        if h_time and str(h_time) != '0':
+            sql_str+='''  and  h_time regexp '%s' '''  % h_time.split(' ')[0]
+        if iplist:
+            sql_str+='''  and  ip in (%s) '''  % self.get_sql_iplist(iplist)
+        if re.match(r'^[ ]+and(.*)$', sql_str):
+            sql_str='where  '+re.match(r'^[ ]+and(.*)$', sql_str).group(1)
+            
+        sql+=sql_str    
+        return [self.db,sql]
+
+    @sql_result()
+    def fault_commit(self, id, status, remark, c_user):
+        sql='''update %s set status='%s', remark='%s', c_time=now(), c_user='%s' where id='%s' '''   % (self.t_fault_handle, status, remark, c_user, id)
+        return [self.db,sql]
+        
+    @sql_result()
+    def fault_add(self, ip, name, zone=None, des=None):
+        sql='''insert into %s (ip, name, zone_name, status, h_time, faultdes) values('%s', '%s', '%s', '%s', now(), '%s') '''   %   (self.t_fault_handle, ip, name, zone, '1', des) 
+        return [self.db,sql]
