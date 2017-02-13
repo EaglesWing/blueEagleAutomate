@@ -6,7 +6,7 @@ create table if not exists {{table_name}} (
     name varchar(45) null,
     /*故障所发生的服务器*/
     ip varchar(15) null,
-    /*游戏区服信息*/
+    /*故障key信息*/
     zone_name varchar(15) null,
     /*处理状态*/
     status varchar(30) null,
