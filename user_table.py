@@ -1052,7 +1052,7 @@ class user_table(object):
         
     @sql_result()
     def privilege_user_member_update(self, group, data, user):
-        sql='''update %s set member='%s', type='member_change', opertion_time=now(), opertion_user='%s' where name='%s' '''  % (self.t_privilege_allocate, data, user, group)
+        sql='''update %s set member='%s', type='member_change', opertion_time=now(), opertion_user='%s' where name='%s' '''  % (self.t_privilege_allocate, data, group, user)
         return  [self.db, sql]
         
     @sql_result()
@@ -1231,8 +1231,18 @@ class user_table(object):
             sql='''select * from %s where name="%s"''' % (self.t_group_info, group)
         return  [self.db, sql]
     
-    @sql_result()
     def add_group_info(self, group, des, c_user):
+        self.add_group(group, des, c_user)
+        self.add_group_to(group)
+        return True
+        
+    @sql_result()
+    def add_group_to(self, group):
+        sql='insert into %s (name) values ("%s");' % (self.t_privilege_allocate, group)
+        return  [self.db, sql]
+    
+    @sql_result()
+    def add_group(self, group, des, c_user):
         sql='insert into %s (name, des , c_time, c_user) values ("%s","%s", now(),"%s");' % (self.t_group_info, group, des, c_user)
         return  [self.db, sql]
         

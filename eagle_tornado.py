@@ -1879,7 +1879,7 @@ class mainHandler(baseHandler):
         if isinstance(data, dict):
             data=', '.join(data.keys())
         elif isinstance(data, list):
-            data=', '.join(data)
+            data=', '.join(comm_lib.filter_int(data))
             
         if not user_table.privilege_user_member_update(group, data, self.args['curruser']):
             return self.write(get_ret(-2, group + '组成员变更失败', status='err'))
@@ -1899,7 +1899,7 @@ class mainHandler(baseHandler):
         if isinstance(data, dict):
             data=', '.join(data.keys())
         elif isinstance(data, list):
-            data=', '.join(data)
+            data=', '.join(comm_lib.filter_int(data))
             
         if not user_table.account_contact_info_update(name, type, data, self.args['curruser']):
             return self.write(get_ret(-2, name + '账号成员变更失败', status='err'))
@@ -1919,7 +1919,7 @@ class mainHandler(baseHandler):
         if isinstance(data, dict):
             data=', '.join(data.keys())
         elif isinstance(data, list):
-            data=', '.join(data)
+            data=', '.join(comm_lib.filter_int(data))
         if not user_table.privilege_peivilege_member_update(group, data, self.args['curruser']):
             return self.write(get_ret(-2, group + '组成员权限变更失败', status='err'))
         return self.write(get_ret(0, group + '组成员权限变更成功', status='info'))   

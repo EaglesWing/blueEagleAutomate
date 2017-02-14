@@ -42,7 +42,9 @@ def create_dirs(file_path):
         except:
             pass
         
-
+def filter_int(data):
+    return [ i for i in data if not isinstance(i, int) ]
+         
     
 def to_datetime_obj(time_str):
     if not time_str:
