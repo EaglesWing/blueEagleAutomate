@@ -3486,8 +3486,8 @@ mainmodule.directive('addinfo',function(){
                     var title='添加key'
                     var dt={
                         'id':{
-                            'name':'ID',
-                            'des':'ID,key的唯一标示',
+                            'name':'ID(非中文和特殊字符)',
+                            'des':'ID,key的唯一标示(非中文和特殊字符)',
                             'other':'ng-model="addkey.id"'
                         },
                         'des':{
@@ -3506,8 +3506,8 @@ mainmodule.directive('addinfo',function(){
                     var title='添加用户'
                     var dt={
                         'id':{
-                            'name':'用户',
-                            'des':'用户名称',
+                            'name':'用户(非中文和特殊字符)',
+                            'des':'用户名称(非中文和特殊字符)',
                             'other':'ng-model="addkey.username"'
                         },
                         'des':{
@@ -3521,8 +3521,8 @@ mainmodule.directive('addinfo',function(){
                     var title='添加组'
                     var dt={
                         'id':{
-                            'name':'组名',
-                            'des':'组名称',
+                            'name':'组名(非中文和特殊字符)',
+                            'des':'组名称(非中文和特殊字符)',
                             'other':'ng-model="addkey.groupname"'
                         },
                         'des':{
@@ -3543,8 +3543,8 @@ mainmodule.directive('addinfo',function(){
                             //'select':'ng-model="addkey.type" ng-options="tp for tp in addkey.typelist"'
                         },
                         'id':{
-                            'name':'账号',
-                            'des':'邮件账号',
+                            'name':'账号(非中文和特殊字符)',
+                            'des':'邮件账号(非中文和特殊字符)',
                             'other':'ng-model="addkey.accountname"'
                         },
                         'pwd':{
@@ -3643,8 +3643,8 @@ mainmodule.directive('addinfo',function(){
                     var title='添加分类'
                     var dt={
                         'app':{
-                            'name':'分类id',
-                            'des':'输入分类id名称'
+                            'name':'分类id(非中文和特殊字符)',
+                            'des':'输入分类id名称(非中文和特殊字符)'
                         },
                         'des':{
                             'name':'分类描述',
@@ -3660,7 +3660,7 @@ mainmodule.directive('addinfo',function(){
                     var title='添加任务'
                     var dt={
                         'id':{
-                            'name':'任务id',
+                            'name':'任务id(非中文和特殊字符)',
                             'des':'非中文字不包含特殊字符符串,建议有规律的字符串,方便模糊查询;如:nginx_deploy/nginx_update',
                             'other':'ng-model="taskcustom.id"'
                         },
@@ -3684,7 +3684,7 @@ mainmodule.directive('addinfo',function(){
                     var title='添加任务信息收集模板'
                     var dt={
                         'id':{
-                            'name':'模板ID',
+                            'name':'模板ID(非中文和特殊字符)',
                             'des':'非中文字不包含特殊字符符串',
                             'other':'ng-model="collecttemplate.id"'
                         },
@@ -3716,8 +3716,8 @@ mainmodule.directive('addinfo',function(){
                             }
                         },
                         'group':{
-                            'name':'主机组id',
-                            'des':'输入主机组id'
+                            'name':'主机组id(非中文和特殊字符)',
+                            'des':'输入主机组id(非中文和特殊字符)'
                         },
                         'des':{
                             'name':'主机组id描述',
@@ -5141,7 +5141,7 @@ mainmodule.directive('taskcreatenextstep',function(){
         scope:{},
         restrict:'A',
         link:function(scope, element, attrs){
-            element.click(function(){
+            element.unbind('click').click(function(){
                 var data=scope.$parent.task.groupselect
                 var commservice=scope.$parent.commservice
                 var compile=scope.$parent.compile
@@ -5467,6 +5467,9 @@ mainmodule.directive('menuactive',function(){
         restrict:'A',
         link:function(scope, element, attrs){
             var commservice=scope.$parent.commservice
+            scope.$parent.asset.assetmanager.dropmeninfoinit()
+            delete scope.$parent.breadcrumblist
+            scope.$parent.breadcrumblist={}
 			element.find('.dropdown.item').hover(function(){
 				if(angular.element(event.target).is('.dropdown.item')){
 					var tdm=angular.element(event.target)
