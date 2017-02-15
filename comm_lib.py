@@ -214,6 +214,8 @@ def send_socket_data(skt, data, data_type='str', dest_path=None, id=None):
 
 class log:
     def __init__(self, log_name):
+        if not isexists(os.path.split(log_name)[0]):
+            os.makedirs(os.path.split(log_name)[0])
         #定义日志文件
         self.log_name=log_name
         #创建logger对象
