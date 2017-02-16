@@ -191,9 +191,10 @@ class clien(object):
             type=account[k].get('type')
             if type == 'email':
                 account[k].update({'pwd':decode_pwd(account[k].get('pwd'))})
-                comm_lib.send_email(account[k], message=message)
+                d=threads.deferToThread(comm_lib.send_email, account[k], message=message)
             elif type == 'wechat':
-                comm_lib.send_wechat(account[k], message=message)
+                d=threads.deferToThread(comm_lib.send_wechat, account[k], message=message)
+            d.addErrback(self.defer_show_expect)
 
     def client_check_and_inform(self, data):
         '''检查有无登录信息和客户端是否在线及任务文件是否存在'''
@@ -744,10 +745,12 @@ class server_factory(Factory, clien):
         if isinstance(dest_path,unicode):
             dest_path=str(dest_path)
 
-        if os.path.exists(data):
+        if dest_path:
             if not dest_path:
                 dest_path=client_deploy_path+os.sep+"file"+os.sep+data.split(os.sep)[-1]
                 log.warn('dest path is None.it will be save to default path.')
+            if not os.path.exists(data):
+                return log.err('source file path %s is not exists. skip send.' % data)
 
             data_type='file'
             with open(data,'rb') as f:
