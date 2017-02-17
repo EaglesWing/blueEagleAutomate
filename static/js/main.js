@@ -5503,3 +5503,16 @@ mainmodule.directive('menuactive',function(){
         }
     }
 })
+mainmodule.directive('embed',function(){
+    return {
+        scope:{},
+        restrict:'A',
+        link:function(scope, element, attrs){
+            var autoplay=element.attr('autoplay')
+            element.embed()
+            if(autoplay=="yes"){
+                element.embed({'autoplay':true})
+            }
+        }
+    }
+})
