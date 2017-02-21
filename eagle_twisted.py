@@ -1011,7 +1011,7 @@ class server_factory(Factory, clien):
         taskname=taskdata.get('task_name')
         filename=taskdata.get('filename')
         ip=taskdata.get('ip')
-        task_history=self.get_task_history(task_name=taskname)
+        task_history=self.get_task_history(taskname)
         servers_history=self.get_task_servers(task_name=taskname, ip=ip)
         taskinfo=self.find_task_info(task_history, servers_history, taskfile=filename)
         modal=servers_history.get(ip, {}).get('modal')
