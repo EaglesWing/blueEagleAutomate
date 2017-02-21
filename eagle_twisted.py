@@ -569,7 +569,7 @@ class server_factory(Factory, clien):
 
         task=data.get('task_name')
         client=data.get('selfip')
-        taskid=data.get('taskid')
+        taskid=int(data.get('taskid'))
         tasktype=data.get('tasktype')
         modal='yes'
         dest_path=data.get('dest_path')
@@ -750,7 +750,8 @@ class server_factory(Factory, clien):
                 dest_path=client_deploy_path+os.sep+"file"+os.sep+data.split(os.sep)[-1]
                 log.warn('dest path is None.it will be save to default path.')
             if not os.path.exists(data):
-                return log.err('source file path %s is not exists. skip send.' % data)
+                log.err('source file path %s is not exists. skip send.' % data)
+                return {ip:'filenotexists'}
 
             data_type='file'
             with open(data,'rb') as f:
@@ -885,7 +886,7 @@ class server_factory(Factory, clien):
                         continue
                          
                     tf_detail= task_list.get(tf)
-                    id=tf_detail.get('id')
+                    id=int(tf_detail.get('id'))
                     #获取 prepro salve任务和非prepro salve任务,默认获取ready状态的任务
                     if type == 'preproslave':
                         ret=self.prepro_isslave(tf_detail)
@@ -1193,7 +1194,7 @@ class server_factory(Factory, clien):
         '''清理任务中执行失败的ip信息'''
         taskname=kws.get('taskname')
         tasktype=kws.get('tasktype')
-        taskid=kws.get('taskid')
+        taskid=int(kws.get('taskid'))
         modal=kws.get('modal')
         filename=kws.get('filename')
         thisip=kws.get('ip')
@@ -1268,7 +1269,7 @@ class server_factory(Factory, clien):
         #此方法在任务执行/推送后需要调用
         taskname=kws.get('taskname')
         status=kws.get('status')
-        taskid=kws.get('taskid')
+        taskid=int(kws.get('taskid'))
         tasktype=kws.get('tasktype')
         tip=kws.get('tip')
         modal=kws.get('modal')
@@ -1304,7 +1305,7 @@ class server_factory(Factory, clien):
     def task_job_status_set(self, **kws):
         taskname=kws.get('taskname')
         status=kws.get('status')
-        taskid=kws.get('taskid')
+        taskid=int(kws.get('taskid'))
         tasktype=kws.get('tasktype')
         ip=kws.get('ip')
         modal=kws.get('modal')
@@ -1420,11 +1421,11 @@ class server_factory(Factory, clien):
         isexcute=task.get('isexcute')
         taskfile=task.get('file_source')
         tasktype=task.get('tasktype')
-        taskid=task.get('id')
+        taskid=int(task.get('id'))
         dest_path=task.get('filename')
         
-        file_filterkey=['ready']
-        task_filterkey=['success', 'done', 'running']
+        file_filterkey=['ready', 'prevfailed']
+        task_filterkey=['success', 'done', 'running', 'prevfailed']
         sendfile_iplist=[]
         dotask_ip=[]
         servers_temp={ k:v for k,v in servers.iteritems() }
@@ -1468,7 +1469,7 @@ class server_factory(Factory, clien):
         isexcute=task.get('isexcute')
         tasktype=task.get('tasktype')
         dotype=task.get('exectype')
-        taskid=task.get('id')
+        taskid=int(task.get('id'))
         runtype=kws.get('runtype')
         collecttemplate=kws.get('collecttemplate')
         modal='no'
@@ -1546,7 +1547,7 @@ class server_factory(Factory, clien):
             return True
             
         prev_status=task.get('prev_status', {}).get(ip)
-        if tkeys.index(tid) == 0 and not prev_status:
+        if tkeys.index(int(tid)) == 0 and not prev_status:
             return True
             
         prev_id=tid - 1
@@ -1575,7 +1576,7 @@ class server_factory(Factory, clien):
         taskfile=task.get('file_source')
         tasktype=task.get('tasktype')
         dotype=task.get('exectype')
-        taskid=task.get('id')
+        taskid=int(task.get('id'))
 
         if not comm_lib.isexists(taskfile):
             task.update({'status':'filenotexists'})
@@ -1614,7 +1615,7 @@ class server_factory(Factory, clien):
         dest_path=task.get('filename')
         isexcute=task.get('isexcute')
         file_source=task.get('file_source')
-        taskid=task.get('id')
+        taskid=int(task.get('id'))
         tasktype=task.get('tasktype')
         dotype=task.get('exectype')
         collecttemplate=task.get('collecttemplate')
@@ -1708,11 +1709,50 @@ class server_factory(Factory, clien):
                 d.addErrback(self.defer_show_expect)
             else:
                 #任务依赖模式
-                if id != sorted_keys[0]:
-                    #上一个任务未完成
-                    return
-                self.do_task(taskname=taskname, task=task)
-
+                if not self.task_obj_set(taskname, tasktype, id):
+                    continue
+                
+                d=threads.deferToThread(self.do_task, taskname=taskname, task=task)
+                d.addErrback(self.defer_show_expect)
+                
+    def task_obj_set(self, taskname, tasktype, tid):
+        taskinfo=self.task_list.get(taskname, {})
+        taskdata=taskinfo.get(tasktype, {})
+        sorted_keys=sorted(taskdata.keys())
+        failedgroup=[]
+        statuscount=int()
+        
+        def do_group(des):
+            for modal in iplist:
+                servers=iplist.get(modal, {})
+                for ip in servers:
+                    state=servers.get(ip, {}).get('status')
+                    groupid=servers.get(ip, {}).get('groupid')
+                    if des == 'addkey' and state in self.task_failed and groupid not in failedgroup:
+                        failedgroup.append(groupid)
+                    elif des == 'setstatus' and groupid in failedgroup:
+                        servers[ip]['status']='prevfailed'
+                        
+        for id in sorted_keys:
+            task=taskdata.get(id)
+            if not task:
+                continue
+            iplist=task.get('iplist', {})
+            status=task.get('status')
+            #获取执行失败的任务来进行匹配            
+            if status in self.task_success:
+                #当前任务执行成功
+                continue
+            elif failedgroup:
+                #说明找到了失败的任务信息
+                #修改主机任务状态为 prevfailed
+                do_group('setstatus') 
+            else:
+                #当前第一个失败状态任务选为参照
+                do_group('addkey')
+ 
+        return True               
+                      
     def check_task_status(self):
         for task in self.task_list:
             d=threads.deferToThread(self.thread_to_check_task, task)
