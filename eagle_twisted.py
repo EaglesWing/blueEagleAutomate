@@ -189,6 +189,9 @@ class clien(object):
         for k in account.keys():
             #微信或者/email
             type=account[k].get('type')
+            member=account[k].get('member', '')
+            if not member:
+                continue
             if type == 'email':
                 account[k].update({'pwd':decode_pwd(account[k].get('pwd'))})
                 d=threads.deferToThread(comm_lib.send_email, account[k], message=message)
@@ -210,9 +213,9 @@ class clien(object):
             massage=''
             if modal == 'no' and ( not ip_logininfo or (not ip_logininfo.get('user')
                                 or not ip_logininfo.get('port') or not ip_logininfo.get('pwd'))):
-                massage='task[%s] server %s get loginfo err. please check.' % (task_name, ip)
+                massage='[warn:]task[%s] server %s get loginfo err. please check.' % (task_name, ip)
             elif modal =='yes' and not self.connlist.get(ip):
-                massage='task[%s] server %s is off line. please check.' % (task_name, ip)
+                massage='[warn:]task[%s] server %s is off line. please check.' % (task_name, ip)
             if   massage:  
                 self.inform_user(massage)
                 
@@ -222,7 +225,7 @@ class clien(object):
             else:
                 file_source=curr_path+os.sep+'task/'+i.get('task_id')+os.sep+os.path.split(i.get('filename'))[1]
             if not comm_lib.isexists(file_source):
-                self.inform_user('task[%s] file source %s is not exists. please check.' % (task_name, file_source))
+                self.inform_user('[warn:]task[%s] file source %s is not exists. please check.' % (task_name, file_source))
        
     def clien_opertion(self, data):
         self.checktype=data.get('checktype')
@@ -657,6 +660,8 @@ class server_factory(Factory, clien):
         dotype=data.get('dotype', '')
         c_user=data.get('c_user')
         task_name=data.get('task_name')
+        exectime=data.get('data', {}).get('executetime')
+        self.inform_user('[info]:%s create task %s, it will be call in %s;' % (c_user, task_name, exectime))
         
         task_info=self.get_task_info(data)
         #若有预处理任务先存下来
@@ -1011,7 +1016,7 @@ class server_factory(Factory, clien):
         taskname=taskdata.get('task_name')
         filename=taskdata.get('filename')
         ip=taskdata.get('ip')
-        task_history=self.get_task_history(taskname)
+        task_history=self.get_task_history(task_name=taskname)
         servers_history=self.get_task_servers(task_name=taskname, ip=ip)
         taskinfo=self.find_task_info(task_history, servers_history, taskfile=filename)
         modal=servers_history.get(ip, {}).get('modal')
@@ -1137,7 +1142,7 @@ class server_factory(Factory, clien):
             log.warn('task[%s] can not find common task.' % taskname)
             self.delete_empty(self.task_list, taskname)
             user_table.update_task_history_status_for_twisted('success', taskname)
-            self.inform_user('task[%s] call done. it is can not find common.' % taskname)
+            self.inform_user('[info:]task[%s] call done. it is can not find common.' % taskname)
         else:
             rely=relevance.get('relevance_rely')
             self.task_job_add('common', dotype, taskname, rely, common_task, skipsuccess=skipsuccess)
@@ -1299,7 +1304,7 @@ class server_factory(Factory, clien):
                 self.task_list[taskname]['prepro_status'].update({'status':'done'})
             else:
                 log.info('task[%s] call done. clear it.' % taskname)
-                self.inform_user('task[%s] call done, it is %s.' % (taskname, status))
+                self.inform_user('[info:]task[%s] call done, it is %s.' % (taskname, status))
                 self.delete_empty(self.task_list, taskname)
             
     def task_job_status_set(self, **kws):

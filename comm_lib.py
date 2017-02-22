@@ -214,8 +214,6 @@ def send_socket_data(skt, data, data_type='str', dest_path=None, id=None):
 
 class log:
     def __init__(self, log_name):
-        if not isexists(os.path.split(log_name)[0]):
-            os.makedirs(os.path.split(log_name)[0])
         #定义日志文件
         self.log_name=log_name
         #创建logger对象
@@ -368,12 +366,12 @@ def do_send_email(**kws):
     fromuser=kws.get('fromuser')
     pwd=kws.get('pwd')
     touser=kws.get('touser')
-    Subject='operation_platform'
-    From='operation_platform'
     ssl_port=kws.get('ssl_port')
     smtp_server=kws.get('smtp_server')
     smtp_port=kws.get('smtp_port', 25)
     msg=kws.get('message')
+    Subject=msg[0:50]
+    From='blueEagle'
     # 三个参数：第一个为文本内容，第二个 plain 设置文本格式，第三个 utf-8 设置编码
     message = MIMEText('%s' % msg, 'plain', 'utf-8')
     #添加邮件header
@@ -382,13 +380,14 @@ def do_send_email(**kws):
     message['Subject'] = Header(Subject, 'utf-8')
     try:
         #创建邮件对象，smtp发送邮件
-        if ssl_port:
-            smtpObj = smtplib.SMTP_SSL(smtp_server, ssl_port)
+        if re.match(r'^[0-9]+$', str(ssl_port)):
+            smtpObj = smtplib.SMTP_SSL(smtp_server, int(ssl_port))
         else:
             smtpObj = smtplib.SMTP(smtp_server,int(smtp_port))
-        #开启ssl，根据目标服务器确定
-        smtpObj.starttls()
-        #smtpObj.set_debuglevel(1)
+        try:
+            smtpObj.starttls()
+        except:
+            pass
         smtpObj.login(fromuser, pwd)
         #发送邮件，as_string显示详情
         smtpObj.sendmail(fromuser, touser, message.as_string())
@@ -401,10 +400,12 @@ def do_send_email(**kws):
 def send_email(dbinfo, message):
     user=dbinfo.get('name')
     member=dbinfo.get('member', '')
-    if member:
+    if not isinstance(member, list):
         member=member.split(',')
     ssl_port=dbinfo.get('smtp_ssl_port')
-    smtp_port=dbinfo.get('smtp_port', 25)
+    smtp_port=dbinfo.get('smtp_port')
+    if not re.match(r'^[0-9]+$', str(smtp_port)):
+        smtp_port=25
     email_server=dbinfo.get('email_server')
     pwd=dbinfo.get('pwd')
     return do_send_email(fromuser=user, touser=member, pwd=pwd, ssl_port=ssl_port,
