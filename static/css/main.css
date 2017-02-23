@@ -1,0 +1,133 @@
+.ui.raised.liter{
+    border-radius: 15px;
+    width:26%;
+    position: absolute;
+    top: 15%;
+    left: 37%;
+}
+.login.page{
+    background:url('../img/eagle.jpg');
+    width:100%;
+    height:100%;
+    background-size: cover;
+}
+.textcenter{
+    text-align:center
+}
+.loginstatus .ui.cards{
+    position: absolute;
+    display:none;
+}
+.head{
+    background:url(/static/img/head_bg.png);
+}
+.ui.top.tabular.menu.container{
+    /*为了和head_bg一样高*/
+    padding:5px;
+    height:58px;
+    padding:5px
+}
+
+.loginstatus .extra.content:hover  .ui.cards{
+    display:flex;
+    left:-150%;
+    padding-top:15px;
+    z-index:9999;
+}
+.ui.simple.pointing.dropdown.link.item  span:hover  .menu{
+    display:flex;
+}
+.menu.childrenmenu{
+    margin-top:-1px !important;
+}
+.replaceactive{
+	background: #FFF !important;
+	color: rgba(0,0,0,.95) !important;
+	border-top-width: 1px !important;
+	border-color: #D4D4D5 !important;
+	font-weight: 700 !important;
+	margin-bottom: -1px !important; 
+	box-shadow: none !important;
+	border-radius: .28571429rem .28571429rem 0 0!important;
+}
+.body{
+    clear:both;
+}
+.body > .segment{
+    width:98% !important;
+    padding-top:5px;
+    padding-right:0px;
+    padding-left:0px;
+    padding-bottom:5px;
+    margin-bottom:0px
+}
+.body > .segment .secondary.menu{
+    margin-bottom:5px;
+}
+.body > .segment .ui.tab .column.grid{
+    padding-bottom:5px;
+}
+.body  > .segment:nth-child(2),
+.body  > .segment .tab  > .container.segment{
+    margin-top:0px
+}
+.body > .segment .segment{
+    width:100% !important;
+}
+.ui.table{
+    margin-top:0px;
+}
+.ui.table th,
+.ui.table td{
+    padding-top:1px;
+    padding-bottom:1px;
+    margin-top:1px;
+    margin-bottom:1px;
+}
+.dropdown div.menu{
+    z-index:999
+}
+.red{
+    color:red
+}
+.green{
+    color:green
+}
+.segments .segment{
+    padding-top:5px !important;
+    padding-bottom:5px !important;
+}
+.container.segment .segments{
+    margin-bottom:0px
+}
+.hide{
+    display:none !important;
+}
+.accordion .content{
+    padding:0px !important;
+}
+.accordion .accordion{
+    margin:0px !important;
+}
+.accordion .accordion .title{
+    padding-left:1.5em !important;
+}
+.accordion .accordion .accordion .title{
+    padding-left:2.5em !important;
+}
+.accordion .accordion .accordion .menu{
+    padding-left:3em !important;
+}
+.rightdm{
+    padding:0px !important;
+}
+a.bread{
+    font-family: Lato,'Helvetica Neue',Arial,Helvetica,sans-serif;
+    font-size:1em;
+    padding:8px !important;
+}
+.segment .column{
+    padding-top:5px !important;
+    padding-right:0px !important;
+    padding-bottom:5px !important;
+}

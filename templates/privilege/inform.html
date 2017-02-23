@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <div class="ui blue container segment">
+        <div class="ui pointing secondary menu">
+            <a class="item active" data-tab="masteraccount">主账号管理</a>
+            <a class="item" data-tab="contact">联系人管理</a>
+        </div>
+        <div class="ui tab active" data-tab="masteraccount">
+            <div class="ui two column padded grid">
+                <div class="column"></div>
+                <?py print selfgroup?>
+                <?py if _context.get('selfgroup') != 'admin':?>
+                    <?py disabled='disabled' ?>
+                <?py else:?>
+                    <?py disabled='' ?>
+                <?py #endif ?>
+                <button id="accountadd" class="positive ui button ${disabled}" addinfo>添加用户信息</button>
+                <!--button id="accountcustom" class="negative ui button" addinfo>自定义通知</button-->
+                <div class="ui selection dropdown">
+                    <input type="hidden" name="type" value="email">
+                    <i class="dropdown icon"></i>
+                    <div class="default text">选择类型</div>
+                    <div class="menu" accountfilter>
+                        <div class="item" data-value="email">邮箱</div>
+                        <div class="item" data-value="wechat">微信</div>
+                    </div>
+                </div>
+
+            </div>
+            <table class="ui striped table single line">
+                <thead>
+                    <tr>
+                        <th class="name">名称</th>
+                        <th class="des">描述</th>
+                        <th class="pwd hide">密码</th>
+                        <th class="type">账号类型</th>
+                        <th class="email_server hide">邮箱server</th>
+                        <th class="smtp_ssl_port hide">smtp_ssl_port</th>
+                        <th class="smtp_port hide">smtp_port</th>
+                        <th class="weid"  style="display:none">公众号ID</th>
+                        <th class="wesecret"  style="display:none">公众号secret</th>
+                        <th class="status">状态</th>
+                        <th>操作时间</th>
+                        <th>操作人</th>
+                        <th class="statuset">状态设置</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody list="privilege.inform.accountlist" repeatdataupdate>
+                    <tr key="{{x.type}}" ng-repeat="x in privilege.inform.accountlist" trhandle>
+                        <td class="name">{{x.name}}</td>
+                        <td class="des">{{x.des}}</td>
+                        <td class="type" type-value="{{x.type}}">{{x.type}}</td>
+                        <td class="email_server hide">{{x.email_server}}</td>
+                        <td class="pwd hide">{{x.pwd}}</td>
+                        <td class="smtp_ssl_port hide">{{x.smtp_ssl_port}}</td>
+                        <td class="smtp_port hide">{{x.smtp_port}}</td>
+                        <td class="weid" style="display:none">{{x.wechatid}}</td>
+                        <td class="wesecret" style="display:none">{{x.wechatsecret}}</td>
+                        <td class="status" ng-class="{'green': x.status=='on', 'red': !x.status || x.status=='off'}">{{x.status || 'off'}}</td>
+                        <td>{{x.c_time}}</td>
+                        <td>{{x.c_user}}</td>
+                        <td class="statuset">
+                            <div name="account" class="ui left floated compact segment" slider>
+                                <div class="ui fitted slider checkbox">
+                                    <input type="checkbox" tabindex="0" checkstatus="{{$parent.privilege.inform.checkbox_checked(x.status)}}">
+                                    <label></label>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <button id="account" class="mini ui teal basic button" ng-class="{hide: x.type != 'email'}" trdetailbutton>详情</button>
+                            <button id="account" class="mini ui red basic button" ng-class="{disabled: x.selfgroup != 'admin'}" trdeletebutton>删除</button>
+                            <button id="account" class="mini ui green basic button" ng-class="{disabled: x.selfgroup != 'admin'}" opertiondialog>成员信息管理</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="ui tab" data-tab="contact">
+            <div class="ui two column padded grid">
+                <div class="column"></div>
+                <button id="contactadd" class="positive ui button ${disabled}" addinfo>添联系人</button>
+            </div>
+            <table class="ui  table">
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>名称</th>
+                        <th>描述</th>
+                        <th>账号类型</th>
+                        <th>操作时间</th>
+                        <th>操作人</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody list="privilege.inform.contactlist" repeatdataupdate>
+                    <tr ng-repeat="x in privilege.inform.contactlist">
+                        <td>{{x.id}}</td>
+                        <td class="name">{{x.name}}</td>
+                        <td>{{x.des}}</td>
+                        <td>{{x.type}}</td>
+                        <td>{{x.c_time}}</td>
+                        <td>{{x.c_user}}</td>
+                        <td>
+                            <button id="contact" class="mini ui red basic button" ng-class="{disabled: x.selfgroup != 'admin'}" trdeletebutton>删除</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+</html>

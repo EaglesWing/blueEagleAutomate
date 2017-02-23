@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <div class="ui blue container segment">
+        <div class="ui pointing secondary menu">
+            <a class="item active" data-tab="assetmanager">资产管理</a>
+            <a class="item" data-tab="assetstatistics">资产统计</a>
+            <a class="item" data-tab="assetchangehistory">资产变更记录</a>
+        </div>
+        <div class="ui tab active" data-tab="assetmanager">
+            <div class="ui  segments" data-tab="assetmanager">
+                <div class="ui two column padded grid attached segment">
+                    <div class="column"></div>
+                    <div id="assetupload" class="ui animated blue button" tabindex="0" upload>
+                        <div class="visible content">资产导入</div>
+                        <div class="hidden content">
+                            <i class="large upload icon"></i>
+                        </div>
+                    </div>
+                    <div id="assetscvs" class="ui animated teal  button datacontent" tabindex="0" data-content="默认导出所有资产,若需要过滤导出请在下面栏根据需要进行选择" data-variation="inverted" download>
+                        <div class="visible content">资产导出</div>
+                        <div class="hidden content">
+                            <i class="large download icon"></i>
+                        </div>
+                    </div>
+                    <button id="assettemplate" class="ui grey button" download>模板下载</button>
+                    <button id="assetdisplay" class="ui brown button" addinfo>显示定制</button>
+                </div>
+                <div class="ui attached segment">
+                    <?py include('./asset_filter.html', id="assetmanager", name="")?>
+                </div>
+            </div>
+                <table class="ui fourten column sortable celled  table" style="overflow:auto">
+                    <thead>
+                        <tr>
+                            <?py for k in display_keys:?>
+                                <th class="${k.keys()[0]}">${k[k.keys()[0]]}</th>
+                            <?py #endfor ?>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody list="asset.assetmanager.asset.assetlist" repeatdataupdate>
+                        <tr pageid="{{l.pid}}" pag="{{l.pagination}}" key="assetsinfo" ng-repeat="l in asset.assetmanager.asset.assetlist" trhandle>
+                            <td class="{{x.key}}" ng-repeat="x in l.list">{{x.value}}</td>
+                            <td class="opertion">
+                                <button id="assetmanager" class="positive ui left attached  basic button" trmodifybutton>详情/修改</button>
+                                <button id="assetmanager" class="right attached ui red basic button" trdeletebutton>删除</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+        </div>
+        <div class="ui tab" data-tab="assetstatistics">
+            <div class="ui  segments" data-tab="assetmanager">
+                <div class="ui two column padded grid attached segment">
+                    <div class="column"></div>
+                    <button id="tatistics" class="ui teal button" download>统计结果导出</button>
+                </div>
+                <div class="ui attached segment">
+                    <?py include('./asset_filter.html', id="assetstatistics", name="tatistics")?>
+                </div>
+            </div>
+            <table class="ui sortable celled table">
+                <thead>
+                    <tr>
+                        <?py for k in tatistics_key:?>
+                            <th class="${k.keys()[0]}">${k[k.keys()[0]]}</th>
+                        <?py #endfor ?>
+                    </tr>
+                </thead>
+                <tbody list="asset.assetmanager.asset.tatisticsassetlist" repeatdataupdate>
+                    <tr pageid="{{l.pid}}" pag="{{l.pagination}}" key="assetsinfo" ng-repeat="l in asset.assetmanager.asset.tatisticsassetlist" trhandle>
+                        <td class="{{x.key}}" ng-repeat="x in l.list">{{x.value}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="ui tab" data-tab="assetchangehistory">
+        <div class="ui  segments" data-tab="assetmanager">
+            <div class="ui two column padded grid attached segment">
+                <div class="column"></div>
+                <button id="assethistory" class="ui teal button datacontent"  data-content="默认导出所有变更记录,若需要过滤导出请在下面栏根据需要进行选择" data-variation="inverted" download>变更记录导出</button>
+            </div>
+            <div class="ui attached segment">
+                <?py include('./asset_filter.html', id="assetchangehistory", name="history")?>
+            </div>
+            </div>
+            <table class="ui sortable celled table">
+                <thead>
+                    <tr>
+                        <?py for k in history_keys:?>
+                            <th class="${k.keys()[0]}">${k[k.keys()[0]]}</th>
+                        <?py #endfor ?>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody list="asset.assetmanager.asset.historyassetlist" repeatdataupdate>
+                    <tr pageid="{{l.pid}}" pag="{{l.pagination}}" key="assetsinfo" ng-repeat="l in asset.assetmanager.asset.historyassetlist" trhandle>
+                        <td ng-class="{'red': x.value == 'delete', 'error': x.value == 'modify', 'green': x.value=='import'}" class="{{x.key}}"  ng-repeat="x in l.list"><i ng-class="{'attention': x.value == 'delete', 'edit': x.value == 'modify', 'checkmark': x.value=='import'}" class=" icon"></i> {{x.value}}</td>
+
+                        <td class="opertion">
+                            <button id="assethistory" class="ui teal basic button" trdetailbutton>详情</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+</html>

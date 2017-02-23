@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <title>蓝鹰</title>
+        <meta contebt="text/html" charset="utf-8">
+        <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-ico">
+        <link rel="stylesheet" type="text/css" href="/static/css/semantic/semantic.min.css">
+        <link rel="stylesheet" type="text/css" href="/static/css/main.css">
+        <script src="/static/js/jquery.js" type="text/javascript"></script>
+        <script src="/static/js/angular.js" type="text/javascript"></script>
+        <script src="/static/js/semantic.min.js" type="text/javascript"></script>
+        <script src="/static/js/service.js" type="text/javascript"></script>
+        <script src="/static/js/main.js" type="text/javascript"></script>
+    </head>
+
+    <body ng-app="mainmodule" ng-controller="mainctrl">
+        <div class="body" ></div>
+        <div class="ui inverted menu">
+            <a class="blue item active">Home </a>
+        </div>
+        <div class="ui segments">
+            <div class="ui segment hide">
+            </div>
+            <div class="ui blue segment">
+                <div class="ui mini steps">
+                    <div class="completed  step">
+                        <i class="truck icon"></i>
+                        <div class="content">
+                            <div class="title">任务创建</div>
+                        </div>
+                    </div>
+                    <div class="completed step">
+                        <i class="truck icon"></i>
+                        <div class="content">
+                            <div class="title">任务详情</div>
+                            <div class="description">任务记录查看任务详情</div>
+                        </div>
+                    </div>
+                    <div class="disabled step">
+                        <i class="info icon"></i>
+                        <div class="content">
+                            <div class="title">任务详情</div>
+                            <div class="description">查看和管理任务</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ui segment" taskname="${task_name}" taskservers>
+                <div class="ui bottom  segment pushable">
+                    <div class="ui push left visible sidebar vertical menu">
+                    <?py if _context.get('history'):?>
+                        <div class="ui accordion" accordion>
+                            <div name="{{x.ip}}" ng-class="{ hide: !x.status }" id="taskservers" type="prepro" class="title bread" status="{{x.status}}" ng-repeat="x in task.taskhistory.localhost" secondarymenu><i class="dropdown icon"></i> 预处理任务</div>
+                        </div>
+                        <div id="servergroup" class="leftdm ui accordion" accordion>
+                            <?py for k,v in history.items():?>
+                                <div name="${k[0]}" id="relevanceapp" type="line" class="title bread" status="{{$parent.taskcolor.${k[0]}}}" taskclset><i class="dropdown icon"></i> ${v['line_des']} </div>
+                                <div class="content">
+                                    <div class="accordion active">
+                                            <div name="${k[1]}" id="relevancetype" type="product" class="title bread" status="{{$parent.taskcolor.${k[0]}_and_${k[1]}}}" taskclset><i class="dropdown icon"></i> ${v['product_des']} </div>
+                                            <div class="content active">
+                                                <div class="accordion active">
+                                                    <div name="${k[2]}" id="relevancetype" type="app" class="title bread" status="{{$parent.taskcolor.${k[0]}_and_${k[1]}_and_${k[2]}}}" taskclset><i class="dropdown icon"></i> ${v['app_des']} </div>
+                                                    <div class="content active">
+                                                        <div class="accordion">
+                                                            <i type="group" status="{{$parent.taskcolor.${k[0]}_and_${k[1]}_and_${k[2]}}}" taskclset></i>
+                                                            <div line="${k[0]}" product="${k[1]}" app="${k[2]}" name="${k[3]}" id="relevancetype" type="group" class="title bread" style="padding-left:3.5em !important;" getserversdata><i class="dropdown icon"></i> ${v['group_des']} </div>
+                                                                <div class="content">
+                                                                    <div class="ui fluid massive secondary vertical pointing text menu transition visible" style="padding-left:3.5em !important">
+                                                                        <a id="taskservers" tasktype="getservers" line="${k[0]}" product="${k[1]}" app="${k[2]}" group="${k[3]}" class="item bread" name="{{x.ip}}" status="{{x.status}}" ng-repeat="x in task.taskhistory.servers.${k[0]}_and_${k[1]}_and_${k[2]}_and_${k[3]}" secondarymenu>{{x.ip}}
+                                                                            <div class="ui image teal label">{{x.assetapp}}
+                                                                                <div class="detail">{{x.modal}}</div>
+                                                                            </div>
+                                                                        </a>
+                                                                </div>
+                                                            </div>  
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                    </div>
+                                </div>
+                            <?py #endfor ?>
+                        </div>
+                    <?py #endif ?>
+                    </div>
+                    <div class="pusher" style="width:87%">
+                    <div class="ui basic segment" style="padding-top:0px !important;">
+                        <div class="ui segments" style="padding-top:0px !important;">
+                            <div id="closed" class="ui warning message" message>
+                                <i class="close icon"></i>
+                                <div class="header">提示 </div>点击任务可以查看执行日志(非成功状态),非running状态的任务可以下载日志和重新运行当前任务;点击左边服务器IP显示任务详情
+                            </div>
+                            <div class="ui segment taskdetailipadd">{{taskserverip}}</div>
+                            <div class="ui segment"  style="max-height:10em;overflow:auto">
+                                <div class="ui middle aligned divided list">
+                                    <custom ng-repeat="l in task.taskhistory.serversinfo">
+                                        <div class="item" filename="{{k}}" status="{{v.status}}" ng-repeat="(k,v) in l">
+                                            <div class="ui grid">
+                                                <div class="thirteen wide column showlog" style="margin-top:8px;margin-bottom:8px"  data-content="{{v.status}}" data-variation="left center"  datacontent>
+                                                    <div class="content">
+                                                    <div class="header" filename="{{k}}">{{v.des}}</div>{{k}}</div>
+                                                    <div class="ui bottom attached active big progress" status="{{v.status}}" taskbarset>
+                                                        <div class="bar">
+                                                            <div class="progress"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="three wide column" style="margin-top:10px;margin-bottom:8px">
+                                                    <button id="taskhistory" ng-class="{disabled: x.status=='running' }" name="download_log" class="ui mini left green attached basic button">下载日志</button>
+                                                    <button id="taskhistory" ng-class="{disabled: x.status=='running' }" name="task_single_restart" class="mini right red attached ui basic button" requestbutton>重新执行</button>
+                                                </div>
+                                            </div>
+                                            <div class="ui fitted divider" style="margin-top:5px"></div>
+                                        </div> 
+                                    </custom>
+                                </div>
+                            </div>
+                            <div class="ui grey segment">
+                                <p>日志信息</p>
+                            </div>
+                            <div class="ui grey segment" style="max-height:46em;overflow:auto;margin:10px !important">
+                                <p ng-repeat="x in task.taskhistory.tasklog track by $index" style="padding:0px;margin:0px">{{x}}</p>
+                            </div>
+                        </div>
+                    </div>    
+                    </div>    
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

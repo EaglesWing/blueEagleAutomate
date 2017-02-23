@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <div class="ui segments" data-tab="assetmanager">
+        <div class="ui two column padded grid attached segment">
+            <div class="column"></div>
+            <button id="serverapp" class="positive ui button" addinfo>添加分类</button>
+        </div>
+        <table class="ui sortable celled  table" style="overflow:auto">
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>描述</th>
+                    <th>操作时间</th>
+                    <th>操作用户</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody name="appdetails" list="servermanager.servergroup.applist.${line}_and_${product}" repeatdataupdate>
+                <tr id="servergroup" pageid="{{l.pid}}" pag="{{l.pagination}}" key="{{l.pid}}" ng-repeat="l in servermanager.servergroup.applist.${line}_and_${product}" trhandle>
+                    <td class="{{x.key}}" ng-repeat="x in l.list">{{x.value}}</td>
+                    <td class="opertion">
+                        <button id="serverapp" class="ui red basic button" trdeletebutton>删除</button>
+                        <button id="serverapp"  popuptype="flowing" class="ui teal basic button" data-position="bottom center"  datacontent>分类管理</button>
+                        <div class="ui flowing popup bottom center transition hidden">
+                            <div class="ui buttons">
+                                <button id="serverapp" class="ui brown basic button" trmodifybutton>详情/变更</button>
+                                <button id="serverappremoval" class="ui green basic button" trmodifybutton>迁移</button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</html>

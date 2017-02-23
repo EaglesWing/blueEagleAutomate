@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <div class="ui segments" data-tab="assetmanager">
+        <div class="ui two column padded grid attached segment">
+            <div class="column"></div>
+            <button id="servergroup" class="ui blue button" addinfo>添加主机组</button>
+            <div class="item">
+                <div class="feild" style="display:flex">
+                    <div id="servergroup" name="assetfilter" style="padding-right:0px;float:left" textareaset>
+                        <div class="ui form" style="padding-right:0px">
+                            <div class="field">
+                                <textarea rows="1" placeholder="搜索主机组id,换行分割"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="padding-left:0px;position:relative;float:left">
+                        <button id="servergroup" name="group" class="ui icon green button" style="height:38px;border-radius:0 .28571429rem .28571429rem 0;display:flex" searchinfo>
+                            <i class="search icon"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <table class="ui fourten column sortable celled  table" style="overflow:auto">
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>描述</th>
+                    <th>操作时间</th>
+                    <th>操作用户</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody name="groupdetails" list="servermanager.servergroup.grouplist.${line}_and_${product}_and_${app}" repeatdataupdate>
+                <tr id="servergroup" pageid="{{l.pid}}" pag="{{l.pagination}}" key="{{l.pid}}" ng-repeat="l in servermanager.servergroup.grouplist.${line}_and_${product}_and_${app}" trhandle>
+                    <td id="servergroup" ng-class="{'hide': x.key=='modal' || x.key=='remark'}" class="{{x.key}}" ng-repeat="x in l.list" tdlable>{{x.value}}</td>
+                    <td class="opertion">
+                        <button id="servergroup" class="ui red basic button" trdeletebutton>删除</button>
+
+                        <button id="servergroup"  popuptype="flowing" class="ui left attached teal basic button" data-position="bottom center"  datacontent>主机管理</button>
+                        <div class="ui flowing popup bottom center transition hidden">
+                            <div class="ui buttons">
+                                <button id="servergroup" class="ui blue basic button" trmodifybutton>详情/变更</button>
+                                <button id="servergroupremoval" class="ui green basic button" trmodifybutton>迁移</button>
+                            </div>
+                        </div>
+                        <button id="servergroup"  popuptype="flowing" class="ui right attached blue basic button" data-position="bottom center"  datacontent>成员管理</button>
+                        <div class="ui flowing popup bottom center transition hidden">
+                            <div class="ui buttons">
+                                <button id="servergroup" name="status" class="ui brown basic button" trdeletebutton>组员客户端状态</button>
+                                <button id="servergroup" name="deploy" class="ui green basic button" trdeletebutton>部署组员客户端</button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</html>

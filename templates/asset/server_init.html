@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <div class="ui blue container segment">
+        <div class="ui pointing secondary menu">
+            <a class="item active" data-tab="serverinit">服务器初始化</a>
+            <a class="item" data-tab="initoolsmanager">初始化工具管理</a>
+            <a class="item" data-tab="logininit">初始化登录管理</a>
+        </div>
+        <div class="ui tab active" data-tab="serverinit">
+            <div class="ui  segments" data-tab="assetmanager">
+                <!--div class="ui two column padded grid attached segment">
+                    <div class="column"></div>
+                    <button id="serverinit" class="ui brown button" batchopertion>批量操作</button>
+                </div-->
+                <div class="ui attached segment" data-tab="serverinit">
+                    <?py include('./asset_filter.html', id="serverinit", name="")?>
+                </div>
+            </div>
+            <table class="ui sortable celled table">
+                <thead>
+                    <tr>
+                        <th>电信ip</th>
+                        <th>初始化工具</th>
+                        <th>状态</th>
+                        <th>操作时间</th>
+                        <th>操作人</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                    <tbody list="asset.assetmanager.asset.assetlist" repeatdataupdate>
+                        <tr pageid="{{l.pid}}" pag="{{l.pagination}}" key="assetsinfo" ng-repeat="l in asset.assetmanager.asset.assetlist" trhandle>
+                            <td id="serverinit" class="{{x.key}}" ng-repeat="x in l.list" tdcheck>{{x.value}}</td>
+                            <td class="opertion">
+                                <button id="serverinit" class="ui brown button" data-variation="inverted" data-content="只获取当前页和当前记录相同资产属性的ip信息进行操作" datacontent batchopertion>初始化</button>
+                                <button id="serverinit" class="ui red button" name="status" key="l.list" serverinitreset>设为失败</button>
+                            </td>
+                        </tr>
+                    </tbody>
+            </table>
+        </div>
+        <div class="ui tab" data-tab="initoolsmanager">
+            <div class="ui  segments" data-tab="assetmanager">
+                <div class="ui attached segment">
+                    <?py include('./asset_filter.html', id="initoolsmanager", freefeild="5",  name="tatistics")?>
+                </div>
+            </div>
+            <table class="ui sortable celled table">
+                <thead>
+                    <tr>
+                        <th>产品线</th>
+                        <th>业务</th>
+                        <th>应用</th>
+                        <th>机房</th>
+                        <th>负责人</th>
+                        <th>初始化工具</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody list="asset.assetmanager.asset.tatisticsassetlist" repeatdataupdate>
+                    <tr pageid="{{l.pid}}" pag="{{l.pagination}}" key="assetsinfo"  keytype="initoolsmanager" ng-repeat="l in asset.assetmanager.asset.tatisticsassetlist" trhandle>
+                        <td ng-class="{'ui hidden': x.key=='pwd' && x.value != '未设置'}" class="{{x.key}}"  ng-repeat="x in l.list"><i id="download" class="{{x.key}}" key="l.list" tdicon></i> {{x.value}}</td>
+                        <td class="opertion">
+                            <button id="initoolsmanager" class="ui blue basic button"   data-variation="inverted" data-content="上传/更新服务器初始化工具" datacontent upload>工具上传</button>
+                            <button id="initoolsmanager" class="ui negative basic button" trdeletebutton>删除</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="ui tab" data-tab="logininit">
+            <div class="ui  segments" data-tab="assetmanager">
+                <div class="ui attached segment">
+                    <?py include('./asset_filter.html', id="logininit", freefeild="5", name="history")?>
+                </div>
+            </div>
+            <table class="ui sortable celled table">
+                <thead>
+                    <tr>
+                        <th>产品线</th>
+                        <th>业务</th>
+                        <th>应用</th>
+                        <th>机房</th>
+                        <th>负责人</th>
+                        <th class='hide'>登录用户</th>
+                        <th class='hide'>登录端口</th>
+                        <th class='hide'>登录密码</th>
+                        <th>登录详情</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody list="asset.assetmanager.asset.historyassetlist" repeatdataupdate>
+                    <tr pageid="{{l.pid}}" pag="{{l.pagination}}" key="assetsinfo" keytype="logininit" ng-repeat="l in asset.assetmanager.asset.historyassetlist" trhandle>
+                        <td ng-class="{'hide': x.key=='pwd' || x.key=='user' || x.key=='port'}" class="{{x.key}}"  ng-repeat="x in l.list"><i class="{{x.key}}"  id="download" key="l.list" tdicon></i> {{x.value}}</td>
+                        <td>
+                            <div class="ui animated fade button" tabindex="0" logindetail>
+                                <div class="visible content"><i class="large loading spinner icon" name="icondetail" key="l.list" serverinitreset></i></div>
+                                <div class="hidden content">点击查看</div>
+                            </div>
+                        </td>
+                        <td class="opertion">
+                            <?py include('./logintools.html', key1='logininit', key2='logininitools')?>
+                            <button id="logininitools" class="ui negative basic button" trdeletebutton>删除</button>
+                            <button id="logininitools" name="logincheck" class="ui violet basic button" trdeletebutton>登录检测</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+    </div>
+    
+</html>

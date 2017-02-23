@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<div class="ui segment">
+    <form name="keyform" class="ui form ng-pristine ng-valid ng-submitted">
+        <?py print _context.get('info')?>
+        <?py if _context.get('info'):?>
+            <?py for k in sorted(info):?>
+                <div class="field">    
+                    <label>${k}</label>
+                    <div class="fields">
+                        <div class="fourteen wide field">
+                            <input type="text" name="${k}" placeholder="标签" value="${info[k]}">
+                        </div>
+                        <div class="two wide field">
+                            <button id="labledel" class="negative ui icon button" ><i class="remove circle outline icon"></i>删除</button>
+                        </div>
+                    </div>
+                </div>
+            <?py #endfor ?>
+        <?py #endif ?>
+        <div class="field" style="display:none">    
+            <label></label>
+            <div class="fields">
+                <div class="fourteen wide field">
+                    <input type="text" name="clonelabel" placeholder="标签">
+                </div>
+                <div class="two wide field">
+                    <button id="labledel" class="negative ui icon button" ><i class="remove circle outline icon"></i>删除</button>
+                </div>
+            </div>
+        </div>
+        <div class="field">    
+            <label>增加标签</label>
+            <div class="fields">
+                <div class="fourteen wide field">
+                    <input type="text" name="addlabel" placeholder="标签" disabled>
+                </div>
+                <div class="two wide field">
+                    <button id="lableadd" class="ui icon  teal button"><i class="plus icon"></i>增加</button>
+                </div>
+            </div>
+        </div>    
+    </form>
+</div>  
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <div class="ui blue container segment">
+        <div class="ui pointing secondary menu">
+            <a class="item active" data-tab="key">key管理</a>
+        </div>
+        <div class="ui tab active" data-tab="user">
+            <div class="ui two column padded grid">
+                <div class="column"></div>
+                <?py if _context.get('selfgroup') != 'admin':?>
+                    <?py disabled='disabled' ?>
+                <?py else:?>
+                    <?py disabled='' ?>
+                <?py #endif ?>
+                <button id="keyadd" class="positive ui button ${disabled}" addinfo>添加key</button>
+            </div>
+             <table class="ui  table">
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>名称</th>
+                        <th>描述</th>
+                        <th>key</th>
+                        <th>操作人</th>
+                        <th>操作时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody list="privilege.key.keylist" repeatdataupdate>
+                    <tr ng-repeat="x in privilege.key.keylist">
+                        <td>{{x.id}}</td>
+                        <td class="name">{{x.name}}</td>
+                        <td>{{x.des}}</td>
+                        <td class="value">{{x.value}}</td>
+                        <td>{{x.opertion_time}}</td>
+                        <td>{{x.opertion_user}}</td>
+                        <td>
+                            <button id="key" class="mini ui red basic button" ng-class="{disabled: x.selfgroup != 'admin'}" trdeletebutton>删除</button>
+                            <button id="key" class="mini ui green basic button" ng-class="{disabled: x.selfgroup != 'admin'}" trmodifybutton>修改</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</html>

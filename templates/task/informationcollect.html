@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <div class="ui blue container segment">
+        <div class="ui pointing secondary menu">
+            <a class="item active" data-tab="informationcollect">信息收集</a>
+            <a class="item" data-tab="informationtemplate">模板管理</a>
+        </div>
+        <div class="ui tab active" data-tab="informationcollect">
+            <div class="ui two column padded grid">
+                <div class="column"></div>
+                <div class="feild">
+                    <div class="ui form" id="informationcollect" name="template" getdropmen>
+                        <select class="ui selection search dropdown">
+                            <option value="0">模板</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="ui calendar" datetype="dateonly" calendar>
+                    <div class="ui input left icon">
+                        <i class="calendar icon"></i>
+                        <input type="text" placeholder="日期">
+                        <button id="informationcollect" class="ui icon blue button" searchinfo>
+                            <i class="search icon"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <table class="ui table">
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>名称</th>
+                        <th>ip</th>
+                        <th>收集时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr id="collecttemplatehistory" pageid="{{l.pid}}" pag="{{l.pagination}}" key="{{l.pid}}" ng-repeat="l in taskmanager.collecttemplate.collecttemplatehistory" trhandle>
+                        <td ng-class="{'hide': x.key == 'id' }" class="{{x.key}}" ng-repeat="x in l.list">{{x.value}}</td>
+                        <td>
+                            <button id="collecttemplatehistory" class="mini ui red basic button" trdeletebutton>删除</button>
+                            <button id="collecttemplatehistory" class="mini ui green basic button" resultbutton>详情</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="ui tab" data-tab="informationtemplate">
+            <div class="ui two column padded grid">
+                <div class="column"></div>
+                <button id="collecttemplate" class="positive ui button" addinfo>添加模板</button>
+                <div class="ui search">
+                    <div class="ui icon input">
+                        <input id="collecttemplate" class="prompt" type="text" placeholder="搜索模板ID/名称" localsearch>
+                        <i class="search icon"></i>
+                    </div>
+                    <div class="results"></div>
+                </div>
+            </div>
+            <table class="ui  table">
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>模板名称</th>
+                        <th>描述</th>
+                        <th>操作时间</th>
+                        <th>操作人</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody list="taskmanager.collecttemplate.collecttemplatelist" repeatdataupdate>
+                    <tr ng-repeat="x in taskmanager.collecttemplate.collecttemplatelist">
+                        <td class="template_id">{{x.template_id}}</td>
+                        <td class="des">{{x.des}}</td>
+                        <td class="remark">{{x.remark}}</td>
+                        <td class="c_time">{{x.c_time}}</td>
+                        <td class="c_user">{{x.c_user}}</td>
+                        <td>
+                            <button id="collecttemplate" class="mini ui red basic button" trdeletebutton>删除</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+</html>

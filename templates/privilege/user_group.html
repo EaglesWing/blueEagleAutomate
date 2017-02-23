@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <div class="ui blue container segment">
+        <div class="ui pointing secondary menu">
+            <a class="item active" data-tab="user">用户管理</a>
+            <a class="item" data-tab="group">组管理</a>
+        </div>
+        <div class="ui tab active" data-tab="user">
+            <div class="ui two column padded grid">
+                <div class="column"></div>
+                <?py if _context.get('selfgroup') != 'admin':?>
+                    <?py disabled='disabled' ?>
+                <?py else:?>
+                    <?py disabled='' ?>
+                <?py #endif ?>
+                <button id="useradd" class="positive ui button ${disabled}" addinfo>添加用户信息</button>
+                <div class="ui search">
+                    <div class="ui icon input">
+                        <input id="user" class="prompt" type="text" placeholder="搜索用户" localsearch>
+                        <i class="search icon"></i>
+                    </div>
+                    <div class="results"></div>
+                </div>
+            </div>
+            <table class="ui  table">
+                <thead>
+                    <tr>
+                        <th>用户名称</th>
+                        <!--th>所属组</th-->
+                        <th>描述</th>
+                        <th>最后登录时间</th>
+                        <th>密码修改时间</th>
+                        <th>操作时间</th>
+                        <th>操作人</th>
+                        <th>操作类型</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody list="privilege.usergroup.userlist" repeatdataupdate>
+                    <tr ng-repeat="x in privilege.usergroup.userlist">
+                        <td class="name">{{x.user}}</td>
+                        <!--td>{{x.owner}}</td-->
+                        <td>{{x.des}}</td>
+                        <td>{{x.last_login}}</td>
+                        <td>{{x.m_pwd_time}}</td>
+                        <td>{{x.c_time}}</td>
+                        <td>{{x.c_user}}</td>
+                        <td>{{x.type}}</td>
+                        <td>
+                            <button id="user" class="mini ui red basic button" ng-class="{disabled: x.selfgroup != 'admin'}" trdeletebutton>删除</button>
+                            <button id="user" class="mini ui green basic button" ng-class="{disabled: x.selfgroup != 'admin'}" opertiondialog>组变更</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="ui tab" data-tab="group">
+            <div class="ui two column padded grid">
+                <div class="column"></div>
+                <button id="groupadd" class="positive ui button ${disabled}" addinfo>添加组</button>
+                <div class="ui search">
+                    <div class="ui icon input">
+                        <input id="group" class="prompt" type="text" placeholder="搜索组" localsearch>
+                        <i class="search icon"></i>
+                    </div>
+                    <div class="results"></div>
+                </div>
+            </div>
+            <table class="ui  table">
+                <thead>
+                    <tr>
+                        <th>组名称</th>
+                        <th>描述</th>
+                        <th>操作时间</th>
+                        <th>操作人</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody list="privilege.usergroup.grouplist" repeatdataupdate>
+                    <tr ng-repeat="x in privilege.usergroup.grouplist">
+                        <td class="name">{{x.name}}</td>
+                        <td>{{x.des}}</td>
+                        <td>{{x.c_time}}</td>
+                        <td>{{x.c_user}}</td>
+                        <td>
+                            <button id="group" class="mini ui red basic button" ng-class="{disabled: x.selfgroup != 'admin'}" trdeletebutton>删除</button>
+                            <button id="group" class="mini ui green basic button" ng-class="{disabled: x.selfgroup != 'admin'}" opertiondialog>成员变更</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+</html>

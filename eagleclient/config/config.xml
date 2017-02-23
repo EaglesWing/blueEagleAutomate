@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <config name="client">
+        <!-->twisted_ip:twisted服务器ip, twisted服务器监听的端口, deploy_path:client部署路径<-->
+       <server ip="{{twisted_ip}}"  port="{{twisted_port}}" task_log_path="sh/log/task_log/" deploy_path="{{client_deploy_path}}"></server>
+    </config>
+</config>

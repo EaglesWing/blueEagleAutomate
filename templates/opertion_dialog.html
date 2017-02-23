@@ -1,0 +1,57 @@
+<div class="ui large modal">
+    <i class="close icon"></i>
+    <div class="header">${title+"["+name+"]"}</div>
+    <div class="description">
+        <div class="ui grid">
+            <div class="seven wide column">
+                <div class="ui raised segments">
+                    <div class="ui segment">
+                        <p>左边栏</p>
+                    </div>
+                    <div class="ui red segment leftdata" style="min-height:40em;max-height:40em;overflow:auto">
+                        <div class="ui top left attached label">${title_left}</div>
+                        <?py include("./privilege/user_dialog_left.html", type=type)?>
+                    </div>
+                </div>
+            </div>
+            <div class="two wide column">
+                <div class="ui raised segments">
+                    <div class="ui segment">
+                        <p>操作栏</p>
+                    </div>
+                    <div class="ui green segment middledata" style="min-height:40em">
+                        <div class="ui animated fade primary basic button" tabindex="0" style="margin:150px 0 20px 0">
+                            <div class="visible content">
+                                <i class="big arrow blue right icon"></i>
+                            </div>
+                            <div class="hidden content">从左边移除</div>
+                        </div>
+
+                        <div class="ui animated fade primary basic button " tabindex="0">
+                            <div class="visible content">
+                                <i class="big arrow blue left icon"></i>
+                            </div>
+                            <div class="hidden content">添加到左边</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="seven wide column">
+                <div class="ui raised segments">
+                    <div class="ui segment">
+                        <p>右边栏</p>
+                    </div>
+                    <div class="ui red segment rightdata" style="min-height:40em;max-height:40em;overflow:auto">
+                        <div class="ui top left attached label">${title_right}</div>
+                        <?py include("./privilege/user_dialog_right.html", type=type)?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="actions">
+        <div class="ui black deny button">取消</div>
+            <div class="ui positive right labeled icon button">提交<i class="checkmark icon"></i>
+            </div>
+        </div>
+</div>

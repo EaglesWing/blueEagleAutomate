@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<div class="ui one column padded grid" feildset>
+    <?py if _context.get('freefeild'):?>
+        <?py for i in xrange(0, int(_context.get('freefeild'))):?>
+            <div class="feild notneed"></div>
+        <?py #endfor ?>
+    <?py #endif ?>
+    <?py if id in ['serverinit']:?>
+        <div class="feild">
+            <div class="ui selection dropdown" serverinit>
+                <input type="hidden" class="initype" name="1">
+                <i class="dropdown icon"></i>
+                <div class="default text">初始化状态</div>
+                <div class="menu" name="line" id="accountfilter" childrenname="${id}">
+                    <div class="item" data-value="1" >未初始化</div>
+                    <div class="item" data-value="2" >初始化成功</div>
+                    <div class="item" data-value="3" >初始化失败</div>
+                </div>
+            </div>
+        </div>
+    <?py #endif ?>
+    <div class="feild">
+        <div class="ui selection dropdown">
+            <input type="hidden" class="line" name="0">
+            <i class="dropdown icon"></i>
+            <div class="default text">产品线</div>
+            <div class="menu" name="line" id="accountfilter" childrenname="${id}" dropmeninfo>
+                <div class="item" data-value="0" >选择产品线</div>
+                <div class="item" data-value="{{x.key}}" line="{{x.key}}" ng-repeat='x in asset.assetmanager.accountfilter.${name}line'>{{x.des}}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="feild">
+        <div class="ui selection dropdown">
+            <input type="hidden" class="product" name="product">
+            <i class="dropdown icon"></i>
+            <div class="default text">业务</div>
+            <div class="menu" name="product" id="accountfilter"  childrenname="${id}" dropmeninfo>
+                <div class="item" data-value="0" >选择业务</div>
+                <div class="item" data-value="{{x.key}}" line="{{x.line}}" product="{{x.key}}" ng-repeat='x in asset.assetmanager.accountfilter.${name}product'>{{x.des}}</div>
+            </div>
+        </div>
+    </div>
+    <div class="feild">
+        <div class="ui selection dropdown">
+            <input type="hidden" class="app" name="app">
+            <i class="dropdown icon"></i>
+            <div class="default text">应用</div>
+            <div class="menu" name="app" id="accountfilter" childrenname="${id}"  dropmeninfo>
+                <div class="item" data-value="0" >选择应用</div>
+                <div class="item" data-value="{{x.key}}" line="{{x.line}}" product="{{x.product}}" app="{{x.key}}" ng-repeat='x in asset.assetmanager.accountfilter.${name}app'>{{x.des}}</div>
+            </div>
+        </div>
+    </div>
+    <div class="feild">
+        <div class="ui selection dropdown">
+            <input type="hidden" class="idc" name="idc">
+            <i class="dropdown icon"></i>
+            <div class="default text">机房</div>
+            <div class="menu" name="idc" id="accountfilter" childrenname="${id}"  dropmeninfo>
+                <div class="item" data-value="0" >选择机房</div>
+                <div class="item" data-value="{{x.key}}" line="{{x.line}}" product="{{x.product}}" app="{{x.app}}" idc="{{x.key}}" ng-repeat='x in asset.assetmanager.accountfilter.${name}idc'>{{x.des}}</div>
+            </div>
+        </div>
+    </div>
+    <?py if id in ["assetstatistics", "logindefault", "logintools", "logininit", 'initoolsmanager']:?>
+        <?py style='style=display:none'?>
+        <?py stylea='style=padding-left:0px'?>
+        <?py styleb='style=padding-right:0px'?>
+    <?py else:?>
+        <?py style=''?>
+        <?py stylea=''?>
+        <?py styleb=''?>
+    <?py #endif ?>
+    <div ${styleb} class="feild datacontent other"  data-variation="inverted" data-content="输入搜索:只接收输入操作,鼠标点击搜索无效;如想按owner字段查找,则输入owner会自动搜索出所有信息,然后输入':'根据需要进行选择">
+        <div class="ui form" id="accountfilter" name="other" childrenname="${id}"  dropmeninfo>
+            <select class="ui selection search dropdown other_key">
+                <option value="0">输入搜索</option>
+                <?py if id in ["logindefault", "logintools", "logininit", "initoolsmanager"]:?>
+                    <option value="owner">owner:{操作用户}</option>
+                <?py else:?>
+                    <option value="serial_number">serial_number:{资产编号}</option>
+                    <option value="os">os:{系统类型}</option>
+                    <option value="owner">owner:{资产负责人}</option>
+                    <option value="mem">mem:{内存}</option>
+                    <option value="disk">disk:{磁盘}</option>
+                    <option value="cpu">cpu:{cpu}</option>
+                    <option value="firm">firm:{厂商}</option>
+                    <option value="c_user">c_user:{操作用户}</option>
+                <?py #endif ?>
+                <option value="{{x.key}}" ng-repeat='x in asset.assetmanager.accountfilter.${name}other'>{{x.des}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="feild" ${stylea}>
+        <div id="${name}" name="assetfilter"  ${style} style="padding-right:0px;float:left" textareaset>
+            <div class="ui form" style="padding-right:0px">
+                <div class="field">
+                    <textarea class="iplist" rows="1" placeholder="输入ip信息,换行分割"></textarea>
+                </div>
+            </div>
+        </div>
+        <div style="padding-left:0px;position:relative;float:left">
+            <button id="assetfilter" name="${id}" class="ui icon green button" style="height:38px;border-radius:0 .28571429rem .28571429rem 0;display:flex"  searchinfo>
+                <i class="search icon"></i>
+            </button>
+        </div>
+    </div>
+</div>
+</html>

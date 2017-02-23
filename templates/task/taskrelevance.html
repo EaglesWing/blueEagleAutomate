@@ -1,0 +1,179 @@
+<div class="ui fullscreen modal" modalhidden>
+    <div class="header">{{task.taskcreate.relevance.title}}</div>
+    <div class="content" style="padding:0.5em !important">
+        <div class="ui horizontal segments" style="min-height:50em;margin-top:0px">
+            <div class="ui attached segment" style="padding:0px">
+                <div class="ui segments">
+                    <div class="ui segment" style="padding:5px">关联设置</div>
+                    <div class="ui grey segment" style="padding:5px">
+                        <form class="ui form">
+                            <div class="two fields" style="margin:0 0em 5px !important">
+                                <div id="relevanceapp" class="field">
+                                    <label>任务分类(选择/自定义)</label>
+                                    <div id="" class="ui fluid search selection dropdown">
+                                        <input class="check" type="hidden" name="relevanceapp" value="" ng-model="task.taskcreate.relevance.relevanceapp">
+                                        <i class="dropdown icon"></i>
+                                        <div class="default text">选择/自定义任务关联分类;用于对任务进行归类管理</div>
+                                        <div class="menu">
+                                            <div class="item" data-value="{{l.app}}" ng-repeat="l in task.taskcreate.relevance.relevanceapplist">{{l.des}}</div>
+                                        </div>
+                                    </div>
+                                    <div id="relevancedes" class="field" style="display:none">
+                                        <label>任务分类描述</label>
+                                        <input class="check" type="text" name="first-name" placeholder="输入分类描述信息" ng-model="task.taskcreate.relevance.relevancedes">
+                                    </div>
+                                </div>
+                                <div id="relevancetype" class="field" >
+                                    <label>任务类型</label>
+                                    <div class="ui selection dropdown">
+                                        <input type="hidden" name="all">
+                                        <i class="dropdown icon"></i>
+                                        <div class="default text">通用任务</div>
+                                        <div class="menu">
+                                            <div class="item" data-value="all">通用任务</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="two fields" style="margin:0 0em 5px !important">
+                                <div id="relevanceid" class="field">
+                                    <label>id</label>
+                                    <input class="check" type="text" name="first-name" placeholder="关联任务id" ng-model="task.taskcreate.relevance.relevanceid">
+                                </div>
+                                <div id="relevancename" class="field">
+                                    <label>名称</label>
+                                    <input class="check" type="text" name="last-name" placeholder="关联任务名称" ng-model="task.taskcreate.relevance.relevancename">
+                                </div>
+                            </div>
+                            <div id="relevanceremark" class="field" style="padding-left:.5em;padding-right:.5em">
+                                <label>备注</label>
+                                <textarea rows="2" placeholder="关联任务备注信息;可为空" ng-model="task.taskcreate.relevance.relevanceremark"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="ui segment" style="padding:5px">关联任务</div>
+                    <div class="ui attached brown segment" style="overflow:auto;padding:0px !important;min-height:30em">
+                        <div class="ui attached segments">
+                            <div class="ui horizontal attached segments"  style="margin-top:0px; margin-bottom:0px">
+                                <div class="segment" style="padding-top:8px; padding-bottom:0px"></div>
+                                <div class="segment" style="padding-top:8px; padding-bottom:0px">
+                                    <div id="relevancerely" class="ui slider checkbox" data-variation="inverted" data-content="灰色OFF,相反为ON(代表任务串行执行,若有失败情况则停止执行后面的任务),默认为灰;" datacontent>
+                                        <input type="checkbox" name="relevancerely"  ng-model="task.taskcreate.relevance.relevancerely">
+                                        <label>开启任务依赖</label>
+                                    </div>
+                                </div>
+                                <div id="relevancepath" class="segment" style="padding-top:0px; padding-bottom:0px">
+                                    <div class="ui  fluid  action input" data-variation="inverted" data-content="自定义任务文件推送路径,点击右边按钮确认/修改:确保路径权限正确,主机组模式为no时还需要确保路径存在;默认为/tmp/\$\{relevance_id\}/\$\{task_name\}/,主机modal为no时使用/tmp;防止多个任务文件冲突设置变量:\$\{relevance_id\}:关联任务ID,\$\{task_name\}:任务名称;" datacontent>
+                                        <input class="check" type="text" placeholder="自定义文件推送路径;默认为/tmp/\$\{relevance_id\}/\$\{task_name\},主机modal为no时使用/tmp;" ng-model="task.taskcreate.relevance.relevancepath" disabled>
+                                        <button class="ui icon button">
+                                            <i class="green edit icon"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ui horizontal attached segment"  style="padding:0px;height:27em;overflow:auto">
+                            <table class="ui sortable celled  table" style="overflow:auto">
+                                <thead>
+                                    <tr>
+                                        <th><i class="circular teal loading help circle icon" data-variation="inverted" data-content="任务执行顺序" datacontent></i>id</th>
+                                        <th><i class="circular teal loading help circle icon" data-variation="inverted" data-content="任务文件名;不同task_id下可以有相同文件名的任务" datacontent></i>文件名</th>
+                                        <th><i class="circular teal loading help circle icon" data-variation="inverted" data-content="任务关联配置:1)是否执行:默认为ON,若不需要执行,点击滑块置为灰色到OFF;2)任务收集:搜索选择信息收集模板,同时确保任务执行过程中只有一行信息输出;格式为json或者a=>1:::b=>2的格式,也可以在任务中请求任务收集接口,此项不选;3)执行范围:当前任务只在什么样的服务器应用上执行,默认为all;" datacontent></i>配置</th>
+                                        <th><i class="circular teal loading help circle icon" data-variation="inverted" data-content="任务关联操作:1)任务顺序调整;上箭头按钮为当前任务顺序往前一个,相反为往后;2)删除按钮,删除当前任务,也可以在右边取消当前任务选择进行删除;3)设为预处理:每个关联任务中可以设置一个预处理任务,当前任务为可执行任务,预处理任务可以添加1/n个推送文件;此场景可用于类似定点业务更新自动化使用;4)预处理任务执行时间:若添加了预处理任务,则需要填写此项,用于此关联任务执行之前多久执行预处理任务,单位为分,时间评估需要考虑网络状况;如:早上7点更新业务,当前网络状况下获取业务版本及推送到服务器需要30分,则此项应填写不小于30;另外研发需要在预处理任务运行之前发布版本;" datacontent></i>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody name="taskrelevance"  tasktype="${_context.get('tasktype')}"  list="task.taskcreate.relevance.relevancelist" repeatdataupdate>
+                                    <tr id="relevancelist" prepro="{{x.prepro}}" ng-repeat="x in task.taskcreate.relevance.relevancelist" taskrelevance>
+                                        <td class="task_id" style="display:none">{{x.task_id}}</td>
+                                        <td class="prepro" style="display:none">{{x.prepro}}</td>
+                                        <td class="id">{{x.id}}</td>
+                                        <td class="filename">{{x.filename}}</td>
+                                        <td class="des"  style="display:none">{{x.des}}</td>
+                                        <td class="relevanceconfig">
+                                            <div class="ui form">
+                                                <div class="grouped fields">
+                                                    <div class="field">
+                                                        <div key="{{x.isexcute}}" id="isexcute" class="ui slider checkbox" setvalue>
+                                                            <input type="checkbox" name="is_excute" checked="checked">
+                                                            <label>是否执行</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="field">
+                                                        <div key="{{x.collecttemplate}}" id="collecttemplate" class="ui mini search selection dropdown" setvalue>
+                                                            <input type="hidden" name="relevancescope" value="af">
+                                                            <i class="dropdown icon"></i>
+                                                            <div class="default text">选择模板启用信息收集;为空则不启用</div>
+                                                            <div class="menu">
+                                                                <div class="item" data-value="{{l.template_id}}" ng-repeat="l in task.taskcreate.relevance.relevancecollect">{{l.des}}</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="field">
+                                                        <div key="{{x.scope}}" id="scope" class="ui mini search selection dropdown" setvalue>
+                                                            <input type="hidden" name="relevancescope" value="af">
+                                                            <i class="dropdown icon"></i>
+                                                            <div class="default text">选择执行范围,默认为all</div>
+                                                            <div class="menu">
+                                                                <div id="relevancetype" apptype="{{l.type}}" class="item {{l.app}}" data-value="{{l.app}}" ng-repeat="l in task.taskcreate.relevance.relevanceapplist" tdlable>{{l.des}}</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="field" ng-class="{hide: x.prepro == 'no'|| x.prepro == 'yes' && x.id !=1}">
+                                                        <div key="{{x.preprotime}}" id="preprotime" class="ui mini error input" setvalue>
+                                                            <input  ng-keyup="input_check()" type="text" placeholder="预处理任务执行时间(先于任务执行时间);单位为分">
+                                                        </div>
+                                                    </div>
+                                                    <div class="field" ng-class="{hide: x.prepro == 'no' || x.prepro == 'yes' && x.id ==1}">
+                                                        <div key="{{x.preprofile}}" id="preprofile" class="ui mini error input" setvalue>
+                                                            <input  ng-keyup="input_check()" type="text" placeholder="输入预处理任务生成的推送文件路径">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <td class="opertion">
+                                            <div class="ui small buttons"  ng-class="{hide: x.prepro == 'yes'}">
+                                                <div class="ui vertical basic icon small buttons">
+                                                    <button class="ui red basic icon button">
+                                                        <i class="chevron up icon"></i>
+                                                    </button>
+                                                    <button class="ui green basic icon button">
+                                                        <i class="chevron down icon"></i>
+                                                    </button>
+                                                </div>
+                                                <div class="ui vertical basic small buttons">
+                                                    <button class="ui red basic button">删除</button>
+                                                    <button class="ui green basic button">设为预处理</button>
+                                                </div>
+                                            </div>
+                                            <div class="ui small buttons" ng-class="{hide: x.prepro == 'no'}">
+                                                <div class="ui vertical basic icon small buttons" ng-class="{hide: x.id != 1}">
+                                                    <button class="ui red basic button">取消预处理</button>
+                                                    <button class="ui green basic button">添加推送文件</button>
+                                                </div>
+                                                <div class="ui vertical basic icon small buttons" ng-class="{hide: x.id == 1}">
+                                                    <button class="ui red basic button">删除</button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="relevanceright" class="ui grey attached segment">
+                <div class="ui segments">
+                    <div class="ui segment" style="padding:5px">任务信息</div>
+                    <?py include('./taskcustom.html', tasktype='relevance')?>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="actions">
+        <div class="ui black deny button">取消</div>
+        <div class="ui positive right labeled icon button">提交<i class="checkmark icon"></i></div>
+    </div>
+</div>

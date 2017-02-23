@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <div class="ui segments" id="groupselect">
+        <div class="ui seven column padded grid attached segment">
+            <div class="column"></div>
+            <div class="column">
+                <div class="ui input" id="tasktypecustom" data-variation="inverted" data-content="根据你的任务类型,自定义类别,可用于任务统计,可不填,默认为空;" datacontent>
+                    <input type="text" placeholder="自定义类别" ng-model="task.groupselect.tasktypecustom">
+                </div>
+            </div>
+            <div class="column">
+                <div class="ui input" id="taskalias" data-variation="inverted" data-content="根据你的任务类型,自定义别名,用于任务记录展示,默认为任务名;" datacontent>
+                    <input type="text" placeholder="设置任务别名" ng-model="task.groupselect.taskalias">
+                </div>
+            </div>
+            <div class="column">
+                <div popuptype="flowing" class="ui input left icon" data-position="bottom center" datacontent>
+                    <i class="calendar icon"></i>
+                    <input type="text" placeholder="设置任务执行时间" ng-model="task.groupselect.executetime">
+                </div>
+                <div class="ui fluid popup bottom center transition hidden">
+                    <div id="executetime" class="menu">
+                        <div class="item">
+                            <i class="play green icon" id="atonce"></i>立即执行</div>
+                        <div class="ui horizontal divider">Or </div>
+                        <div class="ui item calendar" datetype="datetime" style="margin-top:5px" calendar>
+                            <div class="ui input left icon">
+                                <i class="pause red icon"></i>
+                                <input type="text" placeholder="设置任务执行时间" ng-model="task.groupselect.executetime">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="column">
+                <div class="item">
+                    <div class="ui search">
+                        <div class="ui icon input">
+                            <input id="taskgroupselect" class="prompt" type="text" placeholder="搜索组id" localsearch>
+                            <i class="search icon"></i>
+                        </div>
+                        <div class="results"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="column">
+                <button id="tasknext" class="ui red button" taskcreatenextstep>下一步</button>
+            </div>
+        </div>
+        <div class="ui attached scrolling segment " style="max-height:47em !important; overflow:auto !important;">
+            <ul class="ui middle aligned divided selection animated list">
+                <repeatdataupdate id="taskcreate" name="groupdetails" list="taskcreate.servergroup.grouplist.${line}_and_${product}_and_${app}" ></repeatdataupdate>
+                <div class="item" keyname="{{x.group_id}}" ng-repeat="x in taskcreate.servergroup.grouplist.${line}_and_${product}_and_${app}" groupsearch>
+                    <div class="right floated content hide" id="groupmembersearch">
+                        <div class="ui mini teal button">选择组成员</div>
+                    </div>
+                    <div class="content">
+                        <div class="ui accordion" accordion>
+                            <div name="{{x.group_id}}" id="group" type="" class="title bread" style="padding-top:0px;padding-bottom: 0px">
+                                <div class="ui checkbox">
+                                    <input type="checkbox" name="{{x.group_id}}">
+                                    <label>{{x.group_des}}</label>
+                                </div>
+                                <a class="active item" style="margin-left:20px">
+                                    <div class="ui mini label" ng-class="{teal : x.modal== 'yes', brown : x.modal == 'no'}">{{x.modal}}</div>
+                                </a>
+                            </div>
+                            <div class="content">
+                                <ul class="ui celled animated list" id="members" style="padding-left:20px">
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>  
+            </ul>
+        </div>
+    </div>
+</html>

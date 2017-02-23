@@ -1,0 +1,468 @@
+#!/usr/bin/python
+#coding=utf-8
+import pexpect,os,sys,time,threading,getopt,urllib2,json,re,encrypt,commands
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
+def login(ip, port, username, passwd, cmd=None, file=None, isexcute=True,
+            line=None, product=None, app=None):
+    ret=False
+    d=''
+    if file:
+        if not os.path.exists(file):
+            return [ret, 'path err. file[%s] is not exists.' % file]
+        dest_file='/tmp/%s' % file.split(os.sep)[-1]
+        r_cmd='scp -P %s %s %s@%s:%s' % (port, file, username, ip, dest_file)
+    elif cmd:
+        r_cmd='ssh -p %s %s@%s "%s"' % (int(port),username, ip, cmd)
+    else:
+        r_cmd='ssh -p %s %s@%s ' % (int(port),username, ip)
+
+    ssh = pexpect.spawn(r_cmd)
+    try:
+        i = ssh.expect(['password:', 'continue connecting (yes/no)?'], timeout=5)
+        if i == 0 :
+            ssh.sendline(passwd)
+        elif i == 1:
+            ssh.sendline('yes\n')
+            ssh.expect('password: ')
+            ssh.sendline(passwd)
+            
+        if cmd:
+            #是命令则执行
+            ssh.sendline(cmd)
+            d = ssh.read().replace(cmd,'').strip()
+        elif file:
+            #是文件则执行
+            while 1:
+                d = ssh.read().strip()
+                if re.match('.*100%.*',d):
+                    break
+                else:
+                    time.sleep(1)
+                    
+            if isexcute:       
+                check_cmd='chmod a+x %s;%s' % (dest_file, dest_file)
+                ssh.sendline(check_cmd)
+                ret, d=login(ip, port, username, passwd, cmd=check_cmd)
+        else:
+            #无命令和文件则把控制权交给用户，即登录
+            if line and  product and  app:
+                ssh.sendline("PS1='\\033[32;1m[\\u@<%s-%s-%s>\\w]\\$\\033[0m'" % (line, product, app))
+            ssh.interact()
+    
+        ret = True
+    except pexpect.EOF:
+        d="EOF"
+    except pexpect.TIMEOUT:
+        d="TIMEOUT"
+    finally:
+        ssh.close()
+        
+    return [ret ,d.strip()]
+    
+    
+def usage():
+    '''
+    usage:
+        -[h|H]            查看帮助
+        
+        登录方式1(默认):
+            -[l|L]        菜单方式登录主机组服务器
+                f         菜单登录下,跳转到首级菜单
+                p         菜单登录下,跳转到上级菜单
+                e         菜单登录下,退出菜单
+
+        登录方式2:
+            --ip      指定需要操作的服务器IP地址(资产内的ip信息,逗号分割),如(--ip '192.168.1.1,192.168.1.2')
+                      
+        主机组操作:
+            -[g|G]    指定需要操作的主机组名称,如(-g group1)
+            -[a|A]    和-[g|G]一起使用,若你确定当前group唯一或对当前匹配的组进行操作
+            --line    和-[g|G]一起使用指定group所属的产品线
+            --product 和-[g|G]一起使用指定group所属的业务
+            --app     和-[g|G]一起使用指定group所属的类型
+            
+        -[c|C]        登录方式2/主机组操作 登录服务器并执行命令
+        -[f|F]        登录方式2/主机组操作 登录服务器并执行文件
+        -[n|N]        和-[f|F]一起使用, 只传文件,不执行
+    '''
+
+def logininfo_handle(ip, infodata):
+    user=infodata.get('user')
+    port=infodata.get('port')
+    pwd=infodata.get('pwd')
+    type=infodata.get('type')
+    line=infodata.get('line')
+    product=infodata.get('product')
+    app=infodata.get('app')
+    idc=infodata.get('idc')
+    owner=infodata.get('owner')
+
+    if type == "logintools" or type == "logininitools":
+        #安照前端设计:上传用户名获取工具,工具执行退出返回值应为0,且只能有用明文户名输出;
+        #执行时候会把当前条件下'ip/产品线/业务/应用/机房/负责人'信息按序传给工具,按需获取 
+        parameter='   %s %s %s %s %s %s' % (ip, line, product, app, idc, owner)               
+        user_cmd='chmod a+x %s;%s %s' % (curr_path+os.sep+user, curr_path+os.sep+user, parameter)
+        ret,detail=commands.getstatusoutput(user_cmd)
+        if ret >> 8 != 0:
+            #执行获取用户名的工具失败则退出
+            user=None
+            
+        #安照前端设计:上传端口获取工具,工具执行退出返回值应为0,且只能有明文端口输出;
+        #执行时候会把当前条件下'登录用户/ip/产品线/业务/应用/机房/负责人'信息按序传给工具,按需获取    
+        parameter= detail + ' '+  parameter
+        port_cmd='chmod a+x %s;%s %s' % (curr_path+os.sep+port, curr_path+os.sep+port, parameter)
+        ret,detaila=commands.getstatusoutput(port_cmd)
+        if ret >> 8 != 0:
+            #执行获取用户名的工具失败则退出
+            port=None
+            
+        #安照前端设计:上传用户名密码获取工具,工具执行退出返回值应为0,且只能有明文用户名密码输出;
+        #执行时候会把当前条件下'登录用户/ip/端口/产品线/业务/应用/机房/负责人'信息按序传给工具,按需获取
+        parameter= detail +' '+ detaila + ' '+ parameter
+        pwd_cmd='chmod a+x %s;%s %s' % (curr_path+os.sep+pwd, curr_path+os.sep+pwd, parameter)
+        ret,detailb=commands.getstatusoutput(pwd_cmd)
+        if ret >> 8 != 0:
+            #执行获取用户名的工具失败则退出
+            pwd=None
+            
+        user, port, pwd =   detail, detaila, detailb
+    else:
+        #不传输明文密码,这里是密文
+        try:
+            pwd=encrypt.decode_pwd(pwd)
+        except:
+            pwd=pwd
+            
+    return user, port, pwd
+
+def get_group_info(line='', product='', app='', group=''):
+    return json.loads(urllib2.urlopen('http://%s:%s/interface/get_group_info?line=%s&product=%s&app=%s&group=%s&verify_key=%s' % (tornado_ip, int(tornado_port), line, product, app, group, verify_key)).read())
+    
+def get_server_loginfo(iplist):
+    return json.loads(urllib2.urlopen('http://%s:%s/interface/get_server_loginfo?iplist=%s&verify_key=%s' % (tornado_ip, int(tornado_port), iplist, verify_key)).read())
+    
+def get_server_info(line='', product='', app='', group=''):
+    return json.loads(urllib2.urlopen('http://%s:%s/interface/get_server_info?line=%s&product=%s&app=%s&group=%s&verify_key=%s' % (tornado_ip, int(tornado_port), line, product, app, group, verify_key)).read())
+    
+def get_servergroup_info(line='', product=''):
+    return json.loads(urllib2.urlopen('http://%s:%s/interface/get_servergroup_info?line=%s&product=%s&verify_key=%s' % (tornado_ip, int(tornado_port), line, product, verify_key)).read())
+    
+def get_login_from_tornado():
+    return json.loads(urllib2.urlopen('http://%s:%s/interface/get_login_list?verify_key=%s' % (tornado_ip, int(tornado_port), verify_key)).read())
+    
+def menu_select_num(info, numlen, keys=[]):
+    while 1:
+        os.system('clear')
+        pr_id=raw_input(info).strip()
+        try:
+            #p,上一页,f跳转到业务选择
+            if  pr_id in keys:
+                return pr_id
+            elif (int(pr_id) - 1 in xrange(0,numlen)) and not keys:
+                return int(pr_id)
+        except:
+            if (pr_id == 'p' or pr_id == 'f' or pr_id == 'e') and not keys:
+                if pr_id== 'e':
+                    sys.exit()
+
+                return str(pr_id)
+
+def jump_to_line(data, type):
+    show_login_info(data=data, type=type)
+    
+def jump_to_product(data, type):
+    show_login_info(data=data, type=type)
+    
+def jump_to_app(data, type):
+    show_login_info(data=data, type=type)
+    
+def jump_to_group(data, type):
+    show_login_info(data=data, type=type)
+    
+def jump_to_frist():
+    show_login_info()
+    
+def out_put_line(data):
+    key='line'
+    return menu_show(data, key)
+
+def out_put_app(data):
+    key='app'
+    return menu_show(data, key)
+
+def out_put_group(data):
+    key="group"
+    return menu_show(data, key)
+
+def out_put_serverhost(data):
+    key="serverhost"
+    return menu_show(data, key)
+
+def out_put_product(data):
+    key="product"
+    return menu_show(data, key)
+
+def menu_show(data, type):
+    this_data=data.get(type)
+    if not this_data:
+        print "can not found anly %s info" % type
+        return 
+        
+    infolist=this_data.keys()
+    info_str=''
+    line_info=''
+    
+    for i in xrange(0, len(infolist)):
+        id=i+1
+        key=this_data[infolist[i]]
+        if type == 'line':
+            info_str='产品线'
+        elif type == 'app':
+            info_str='分类'
+        elif type == 'group':
+            info_str='主机组'
+        elif type == 'product':
+            info_str='业务'
+
+        line_info+=str(id)+" )" + str(key)+ "\n"
+        
+    selectid=menu_select_num(line_info.encode('utf-8')+u"\n请选择"+info_str+"\n\t输入上方序号,f跳转到首级,p跳转到上一级,e退出:", len(infolist))
+    
+    if str(selectid) == 'p':
+        if type == "line":
+            jump_to_frist() 
+        elif type == 'product':
+            jump_to_line(data, 'line') 
+        elif type == "app":
+            jump_to_product(data, 'product') 
+        elif type == "serverhost":
+            jump_to_group(data, 'group') 
+        elif type == "group":  
+            jump_to_app(data, 'app') 
+            
+    elif str(selectid) == 'f':
+        jump_to_frist()  
+    else:
+        selectid=infolist[selectid - 1]
+
+    return selectid
+    
+def login_server(server, logininfo):
+    if logininfo:
+        line=logininfo.get('line')
+        product=logininfo.get('product')
+        app=logininfo.get('app')
+
+        user, port, pwd=logininfo_handle(server, logininfo)
+
+        if not user or not port or not pwd:
+            print "get login info err."
+            return False
+        else:
+            login(server, port, user, pwd, line=line, product=product, app=app)
+    else:    
+        return False
+        
+def show_login_info(data=None, type=None):
+    alldata={}
+    if not data:
+        info=get_login_from_tornado()
+        if not info:
+            return 
+        linedata={ i:info[i]['des'] for i in info }
+        alldata['line']=linedata
+    else:
+        alldata=data
+ 
+    if type == "line" or not type:
+        #输出line菜单
+        line=out_put_line(alldata)
+    
+    if not data:
+        productdata=info[line]['product']
+        alldata['product']=productdata
+
+    if type in ['line', "product"] or not type:
+        #输出product菜单
+        product=out_put_product(alldata)
+            
+    if not data:
+        appandgroup=get_servergroup_info(line=line, product=product)
+        if not appandgroup:
+            return 
+        appdata={ i:appandgroup[i].get('des') for i in appandgroup}
+        alldata['app']=appdata
+        
+    if type in ['line', "product", 'app'] or not type:
+        #输出分类菜单
+        app=out_put_app(alldata)
+    
+    if not data:
+        groupdata=appandgroup[app]['group']
+        groupdata={ i.keys()[0]:i[i.keys()[0]] for i in groupdata}
+        alldata['group']=groupdata
+        
+    if type in ['line', "product", 'app', 'group'] or not type:
+        #输出主机组菜单
+        group=out_put_group(alldata)
+    
+    if not data:
+        serverinfo=get_server_info(line=line, product=product, app=app, group=group)
+        if not serverinfo:
+            return 
+        serverinfo={ i:i for i in serverinfo}
+        alldata['serverhost']=serverinfo
+    #输出主机菜单
+    server=out_put_serverhost(alldata)
+    
+    logininfo=get_server_loginfo(server)
+    login_server(server, logininfo.get(server))
+    #show_login_info(data, 'serverhost')
+    out_put_serverhost(alldata)
+    
+def get_parameter(options):
+    info={}
+    for k,v in options.items():
+        if k in ['-c', '-C']:
+            key='cmd'
+        elif k in ['--line']:
+            key='line'
+        elif k in ['--product']:
+            key='product'
+        elif k in ['--app']:
+            key='app'
+        elif k in ['--ip']:
+            key='iplist'
+        elif k in ['-h', '-H']:
+            key="help"
+        elif k in ['-l', '-L']:
+            key="login"
+        elif k in ['-a', '-A']:
+            key='sure'
+        elif k in ['-g', '-G']:
+            key='group'
+        elif k in ['-n', '-N']:
+            key='isexcute'
+        elif k in ['-f', '-F']:
+            key='file'
+            
+        if not info.get(key):
+            info[key]=v
+     
+    return info
+    
+def do_login(ip, port, user, pwd, cmd=None, file=None, isexcute=True):
+    ret, detail=login(ip, port, user, pwd, cmd=cmd, file=file, isexcute=isexcute)
+    print "[%s result-%s]BEGIN" % (ip, ret) + "\n"+ detail + "\n[%s result-%s]END" % (ip, ret) + "\n"
+    
+def do_login_task(ip, user, port, pwd, cmd=None, file=None, isexcute=True, test=None):
+    t=threading.Thread(target=do_login, args=(ip, int(port), user, pwd),
+                        kwargs={'cmd':cmd, 'file':file, 'isexcute':isexcute})
+
+    t.setDaemon(False)
+    t.start()
+
+def do_task(logininfo, options):
+    for ip in logininfo:
+        user, port, pwd=logininfo_handle(ip, logininfo.get(ip))
+        if 'isexcute' in options:
+            isexcute=False
+        else:
+            isexcute=True
+        do_login_task(ip, user, port, pwd, cmd=options.get('cmd'),
+                    file=options.get('file'), isexcute=isexcute)
+
+def show_group_info(data, options):
+    showdata=[]
+    id=int()
+    show_str=''
+    iplist=[]
+    
+    for l in data.keys():
+        for p in data[l]:
+            for a in data[l][p]:
+                for g in data[l][p][a]:
+                    id+=1
+                    show_str+=str(id)+ " )" + str(l) + '-->' + str(p) + "-->" + str(a) + "-->" + str(g) + ":"+"\n"
+                    showdata.append({tuple([l, p, a, g]):data[l][p][a][g]})
+
+    if  'sure' not in options:
+        if len(showdata) > 1:
+            index=menu_select_num(show_str.encode('utf-8')+u"\n请选择组序号:", len(showdata))
+            showdata=showdata[index - 1]
+            for k,v in showdata.items():
+                show_str=str(index) + " )" + str(k[0]) + '-->' + str(k[1]) + "-->" + str(k[2]) + "-->" + str(k[3]) + ":"+"\n"
+
+        select=menu_select_num(show_str.encode('utf-8')+u"\n确定对当前组进行操作？(yes/no):", len(showdata), keys=['yes','no'])
+        if select == "no":
+            sys.exit()
+
+    for k in showdata:
+        iplist+=k[k.keys()[0]]
+    
+    return iplist
+        
+def do_group(options):
+    group=options.get('group')
+    if not group:
+        return
+    line=options.get('line','')
+    product=options.get('product','')
+    app=options.get('app','')
+    groupinfo=get_group_info(line=line, product=product, app=app, group=group)
+    if not groupinfo:
+        return 
+    iplist=show_group_info(groupinfo, options)
+    if isinstance(iplist, list):
+        iplist=','.join(iplist)
+    logininfo=get_server_loginfo(iplist)
+    do_task(logininfo, options)
+    
+if __name__ == "__main__":
+    tornado_ip='localhost'
+    tornado_port=7010
+    verify_key='1233211234567'
+    curr_path=os.path.split(os.path.realpath(__file__))[0]
+
+    try:
+        options, args=getopt.getopt(sys.argv[1:], 'c:C:f:F:g:G:hnNaAlL', ['ip=', 'line=', 'product=', 'app='])
+    except getopt.GetoptError:
+        print usage.__doc__
+        sys.exit()
+
+    parameter_list=get_parameter({ i[0]:i[1] for i in options})
+    try:
+        if 'help' in parameter_list:
+            print usage.__doc__
+        elif not parameter_list or 'login' in  parameter_list:
+            show_login_info()
+        elif  parameter_list.get('iplist'):
+            iplist=parameter_list['iplist']
+            if not parameter_list.get('cmd') and not parameter_list.get('file'):
+                server=iplist.split(',')[0]
+                logininfo=get_server_loginfo(server)
+                login_server(server, logininfo.get(server))
+            else:
+                logininfo=get_server_loginfo(iplist)
+                checklist=list(set(iplist.split(',')))
+                if len(logininfo.keys()) != len(checklist) or not logininfo:
+                    print 'get login info err.'
+                else:     
+                    do_task(logininfo, parameter_list)   
+    
+        elif parameter_list.get('group'):
+            if not parameter_list.get('cmd') and  not parameter_list.get('file'):
+                print usage.__doc__
+            else:
+                do_group(parameter_list)
+    except:
+        if not isinstance(sys.exc_info()[1], EOFError
+            ) and not isinstance(sys.exc_info()[1], KeyboardInterrupt
+            ) and not isinstance(sys.exc_info()[1], SystemExit
+            ):
+            print sys.exc_info()
+        else:
+            print '\n'
+    
