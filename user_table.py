@@ -875,7 +875,7 @@ class user_table(object):
     def mod_asset(self, ip, data):
         setlist=''
         for k,v in data.items():
-            setlist+=k+"='%s'" % v + ","
+            setlist+='`'+k+"`"+"='%s'" % v + ","
         setlist=setlist.strip(',')
 
         sql='''update %s set %s where telecom_ip='%s' '''  % (self.t_assets_info, setlist, ip)
