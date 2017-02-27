@@ -3641,25 +3641,24 @@ class mainHandler(baseHandler):
                 try:
                     privi_name=self.__class__.__name__+"."+self.method
                     has_privi=False
-
+                    isadmin=False
+                    
                     privi_list=user_table.get_privilege_allocate_info(user=self.args['curruser'])
-                    if self.args['curruser'] == 'admin':
-                        isadmin=True
-                    else:
-                        isadmin=False
                     if not privi_list and self.args['curruser'] != 'admin':
                         #当前用户没有任何组，即没任何权限
                         return self.write(get_ret(-99, '你没有权限', status='err'))
-
+                
                     for i in  privi_list:
-                        if not i['privi_list']:
+                        if not i['privi_list'] and i['name'] != 'admin':
                             continue
-                    
-                        if privi_name in i['privi_list'].split(', '):
-                            has_privi=True
-                            break
                             
-                    if not has_privi and not isadmin:
+                        if i['name'] == 'admin':
+                            isadmin=True
+                            
+                        if privi_name in str(i['privi_list']).split(', '):
+                            has_privi=True
+
+                    if not has_privi and not isadmin and self.args['curruser'] != 'admin':
                         #没有权限执行当前函数
                         return self.write(get_ret(-98, '你没有当前请求权限', status='err'))
                         
