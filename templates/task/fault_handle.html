@@ -70,7 +70,7 @@
                 </thead>
                 <tbody>
                     <tr id="fault" pageid="{{l.pid}}" pag="{{l.pagination}}" key="{{l.pid}}" ng-repeat="l in faultinfodata" trhandle>
-                        <td id="fault" ng-class="{'hide': x.key == 'id' || x.key == 'remark'}" class="{{x.key}}" ng-repeat="x in l.list">{{x.value}}</td>
+                        <td id="fault" ng-class="{'hide': x.key == 'id' || x.key == 'remark'|| x.key == 'status'}" class="{{x.key}}" ng-repeat="x in l.list" tdlable>{{x.value}}</td>
                         <td>
                             <button id="fault" faultid="" class="mini ui blue basic button" resultbutton>详情</button>
                             <button id="fault" faultid="" class="mini ui green basic button" addinfo>操作</button>

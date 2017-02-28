@@ -1885,6 +1885,7 @@ mainmodule.directive('tdlable',function(){
             var id=element.attr('id')
             
             attrs.$observe('class', function(){
+              setTimeout(function(){
                 var cls=element.attr('class')
                 if((id=="servergroup"||id=="groupmember") && (cls=="group_id"||cls=="member")){
                     var pdm=element.parent()
@@ -1902,6 +1903,15 @@ mainmodule.directive('tdlable',function(){
                         var lable='<a class="ui mini '+color+' image label" style="float:right">'+asset_app+'<div class="detail">'+modal+'</div></a>'
                     }
                     element.append('<i style="display:none">&</i>'+lable)
+                }else if(id=="fault"){
+                    var cl={
+                           '1':{'des':'未处理', 'col':'red'},
+                           '2':{'des':'已处理', 'col':'green'}
+                    }
+                    var num=element.text().trim()
+                    if(element.hasClass("status")){
+                        element.after('<td class="state_des" style="color:'+cl[num]['col']+'">'+cl[num]['des']+'</td>')
+                    }
                 }else if(id=="taskhistory"){
                     if(['id', 'custom_name', 'custom_type', 'task_type' , 'timestatus', 'create_time'].indexOf(cls)!=-1){
                         element.hide() 
@@ -1951,6 +1961,7 @@ mainmodule.directive('tdlable',function(){
                         element.hide() 
                     }
                 }
+              }, 1)
             })
 
         }
