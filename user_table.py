@@ -1052,12 +1052,12 @@ class user_table(object):
         
     @sql_result()
     def privilege_user_member_update(self, group, data, user):
-        sql='''update %s set member='%s', type='member_change', opertion_time=now(), opertion_user='%s' where name='%s' '''  % (self.t_privilege_allocate, data, group, user)
+        sql='''update %s set member='%s', type='member_change', opertion_time=now(), opertion_user='%s' where name='%s' '''  % (self.t_privilege_allocate, data, user, group)
         return  [self.db, sql]
         
     @sql_result()
     def privilege_peivilege_member_update(self, group, data, user):
-        sql='''update %s set privi_list='%s', type='privilege_change', opertion_time=now(), opertion_user='%s' where name='%s' '''  % (self.t_privilege_allocate, data, group, user)
+        sql='''update %s set privi_list='%s', type='privilege_change', opertion_time=now(), opertion_user='%s' where name='%s' '''  % (self.t_privilege_allocate, data, user, group)
         return  [self.db, sql]
         
     @sql_result()

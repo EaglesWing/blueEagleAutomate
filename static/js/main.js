@@ -2828,6 +2828,7 @@ mainmodule.directive('getdropmen',function(){
             var commservice=scope.$parent.commservice
             if(id=="informationcollect"){
                 element.click(function(){
+                    delete window.sessionStorage[url]
                     element.find('div.dropdown').dropdown({
                         allowAdditions: true,
                         apiSettings: {
