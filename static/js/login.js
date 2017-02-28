@@ -70,6 +70,12 @@ loginmodule.directive('logindct', function(){
                     $element.find('input[name="newpwd"]').parent().show()
                 }
             }
+            $element.find('input#pwd').keyup(function(){
+                var code=event.keyCode;
+                if(code==13){
+                    $scope.$parent.do_login()
+                }
+            })
             $element.find('.pwdmodfiy').click(function(){
                 $scope.$parent.add_input('userpwdmodiy')
             })
