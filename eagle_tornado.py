@@ -30,6 +30,7 @@ def get_list(data):
 
 def tj_render(filepath, context=None):
     #context默认
+    filepath=curr_path+os.sep+filepath.replace(curr_path, '')
     if not os.path.exists(filepath):
         return 'tenjin file path err.'
     if filepath.find(os.sep) != -1:
