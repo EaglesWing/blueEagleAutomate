@@ -5479,17 +5479,17 @@ mainmodule.directive('menuactive',function(){
         restrict:'A',
         link:function(scope, element, attrs){
             var commservice=scope.$parent.commservice
-            scope.$parent.asset.assetmanager.dropmeninfoinit()
-            delete scope.$parent.breadcrumblist
-            scope.$parent.breadcrumblist={}
-			element.find('.dropdown.item').hover(function(){
-				if(angular.element(event.target).is('.dropdown.item')){
-					var tdm=angular.element(event.target)
-					element.find('.dropdown.item').removeClass('replaceactive')
-					tdm.addClass('replaceactive')
-				}
-			});
+            element.find('.dropdown.item').hover(function(){
+                if(angular.element(event.target).is('.dropdown.item')){
+                   var tdm=angular.element(event.target)
+                   element.find('.dropdown.item').removeClass('replaceactive')
+                   tdm.addClass('replaceactive')
+                }
+            }); 
             element.find('.dropdown.item .childrenmenu').click(function(){
+                scope.$parent.asset.assetmanager.dropmeninfoinit()
+                delete scope.$parent.breadcrumblist
+                scope.$parent.breadcrumblist={}
                 var tdm=angular.element(event.target)
                 var bodydm=angular.element('.body')
                 var id=tdm.attr('id')

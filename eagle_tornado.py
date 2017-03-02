@@ -3371,8 +3371,9 @@ class mainHandler(baseHandler):
         self-privilege::获取任务关联下拉信息::任务关联-任务创建-关联任务/详情变更
         '''
         assetapp=self.get_asset_keylist('app')
+        check_app={ i.get('app'):i for i in assetapp }
         relevanceapp=user_table.get_task_relevance()
-        { assetapp.append({'app':i.get('relevance_app'), 'des':i.get('relevance_app_des'), 'type':'relevance'}) for i in relevanceapp if {'app':i.get('relevance_app'), 'des':i.get('relevance_app_des'), 'type':'relevance'} not in assetapp}
+        { assetapp.append({'app':i.get('relevance_app'), 'des':i.get('relevance_app_des'), 'type':'relevance'}) for i in relevanceapp if {'app':i.get('relevance_app'), 'des':i.get('relevance_app_des'), 'type':'relevance'} not in assetapp and i.get('relevance_app') not in check_app}
 
         return self.write(json.dumps(assetapp, ensure_ascii=False))
          
