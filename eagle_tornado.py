@@ -27,12 +27,23 @@ def get_list(data):
         return []
     else:
         return data.split(',')
+        
+def get_ret(code, message, status='info', isjson=True):
+    #status:info/err/warning
+    data={}
+    data['code']=code
+    data['message']=message
+    data['status']=status
+    if isjson:
+        return json.dumps(data, ensure_ascii=False)
+    else:
+        return data
 
 def tj_render(filepath, context=None):
     #context默认
     filepath=curr_path+os.sep+filepath.replace(curr_path, '')
     if not os.path.exists(filepath):
-        return 'tenjin file path err.'
+       return get_ret(-8, 'tenjin file path err.', status='err')
     if filepath.find(os.sep) != -1:
         fp=re.match(r'(.*)%s(.*)'%os.sep, filepath).group(1)
         fn=re.match(r'(.*)%s(.*)'%os.sep, filepath).group(2)
@@ -46,9 +57,7 @@ def tj_render(filepath, context=None):
         return engine.render(fn, context)
     except:
         log.warn('lineno:' + str(sys._getframe().f_lineno)+": "+str(sys.exc_info()))
-        return {'result':"render err."}
-
-
+        return get_ret(-9, 'render err.', status='err')
 
 def check_true(*argv):
     ret=True
@@ -110,17 +119,6 @@ def request_twisted(request, long=None):
 def sleep(t):
     return time.sleep(t)
 
-        
-def get_ret(code, message, status='info', isjson=True):
-    #status:info/err/warning
-    data={}
-    data['code']=code
-    data['message']=message
-    data['status']=status
-    if isjson:
-        return json.dumps(data, ensure_ascii=False)
-    else:
-        return data
 
 class baseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
