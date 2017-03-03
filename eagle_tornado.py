@@ -146,6 +146,7 @@ class websocketHandler(tornado.websocket.WebSocketHandler):
             return self.write_message(get_ret(-2, '请求twisted失败' ,status='err'))
             
         self.twisted_conn[self]=sk
+        count=int()
         while 1:
             try:
                 data=comm_lib.recv_socket_data(sk)
@@ -153,9 +154,14 @@ class websocketHandler(tornado.websocket.WebSocketHandler):
                 break;
                 
             if not data:
+                if count >= 180 :
+                    #3分钟收不到数据就退出, 避免阻塞
+                    break;
+                count+=1
                 sleep(0.2)
                 continue
 
+            count=int()
             logdone=False
             data=comm_lib.json_to_obj(data)
             if isinstance(data, dict):
