@@ -1146,7 +1146,7 @@ class mainHandler(baseHandler):
         
     def add_info_useradd_html(self):
         '''
-        self-privilege::key添加::权限管理-用户组管理-用户管理-添加用户信息
+        self-privilege::添加用户::权限管理-用户组管理-用户管理-添加用户信息
         '''
         self.args['addtype']='useradd'
         self.args['name']=self.args.get('user')
@@ -1155,7 +1155,7 @@ class mainHandler(baseHandler):
         
     def add_info_groupadd_html(self):
         '''
-        self-privilege::key添加::权限管理-用户组管理-组管理-添加组
+        self-privilege::添加组::权限管理-用户组管理-组管理-添加组
         '''
         self.args['addtype']='groupadd'
         self.args['name']=self.args.get('group')
@@ -1749,7 +1749,7 @@ class mainHandler(baseHandler):
         
     def get_ngrepeat_data_grouplist(self):
         '''
-        self-privilege::获取key列表::权限管理-用户组管理-组管理页面前端自动加载
+        self-privilege::获取组列表::权限管理-用户组管理-组管理页面前端自动加载
         '''
         self.args['dotype']='group'
         return self.write(json.dumps(self.get_privilegs(), ensure_ascii=False))
@@ -1763,7 +1763,7 @@ class mainHandler(baseHandler):
 
     def get_ngrepeat_data_privilegelist(self):
         '''
-        self-privilege::获取权限信息::权限管理-权限分配-权限分配页面前端自动加载
+        self-privilege::获取组权限信息::权限管理-权限分配-权限分配页面前端自动加载
         '''
         self.args['dotype']='group'
         return self.write(json.dumps(self.get_privilegs(), ensure_ascii=False))
@@ -1943,7 +1943,7 @@ class mainHandler(baseHandler):
         member_history=user_table.get_privilege_allocate_info(group=group)
         if member_history:
             if member_history[0]['privi_list']:
-                member_list=[ i for i in member_history[0]['privi_list'].split(', ') if i ]
+                member_list=[ i for i in member_history[0]['privi_list'].split(',') if i ]
 
         privilege_history=user_table.get_privilege_info()
         #privilege_info={ i['name']:i['des'] for i in privilege_history }
@@ -2062,7 +2062,7 @@ class mainHandler(baseHandler):
         
     def deploy_servergroup(self):
         '''
-        self-privilege::查询资产信息::主机管理-主机组管理-成员管理-部署组员客户端
+        self-privilege::部署组客户端::主机管理-主机组管理-成员管理-部署组员客户端
         '''
         self.args['dotype']='groupdeploy'
         self.args['task_type']='servergroup'
@@ -2070,7 +2070,7 @@ class mainHandler(baseHandler):
         
     def deploy_groupmember(self):
         '''
-        self-privilege::查询资产信息::主机管理-主机组管理-客户端管理-部署客户端
+        self-privilege::组成员部署客户端::主机管理-主机组管理-客户端管理-部署客户端
         '''
         self.args['dotype']='memberdeploy'
         self.args['task_type']='servergroup'
@@ -2494,7 +2494,7 @@ class mainHandler(baseHandler):
         
     def delete_user_info(self):
         '''
-        self-privilege::删除组::权限管理-用户组管理-用户管理-删除
+        self-privilege::删除用户::权限管理-用户组管理-用户管理-删除
         '''
         self.args['success']='删除用户成功'
         self.args['err']='删除用户失败'
@@ -2625,7 +2625,7 @@ class mainHandler(baseHandler):
         
     def loginmanager_detail(self):
         '''
-        self-privilege::查询资产详情::资产管理-登录管理-登录管理-服务器详情
+        self-privilege::单个服务器登录信息查询::资产管理-登录管理-登录管理-搜索-服务器详情
         '''
         info=self.get_asset_search_info()
         tip=self.args.get('iplist')
@@ -2928,7 +2928,7 @@ class mainHandler(baseHandler):
         
     def assetstatistics_searchinfo(self):
         '''
-        self-privilege::查询资产变更记录::资产管理-资产管理-资产统计-搜索
+        self-privilege::统计资产信息::资产管理-资产管理-资产统计-搜索
         '''
         self.args['name']='tatistics'
         info=self.get_asset_search_info()
@@ -3136,7 +3136,7 @@ class mainHandler(baseHandler):
         
     def modify_taskhistory_info(self):
         '''
-        self-privilege::主机组分类迁移::主机管理-主机组管理-分类管理-迁移
+        self-privilege::任务执行时间修改::任务管理-任务记录-修改时间
         '''
         self.args['checktype']='modifycheck'
         self.task_exectime_check()
@@ -3323,10 +3323,10 @@ class mainHandler(baseHandler):
         
     def delete_logininitools_info(self):
         '''
-        self-privilege::服务器初始化登录信息删除::资产管理-初始化管理-初始化登录管理-搜索-删除
+        self-privilege::服务器初始化登录工具删除::资产管理-初始化管理-初始化登录管理-搜索-删除
         '''
-        self.args['success']='初始化登录信息删除成功'
-        self.args['err']='初始化登录信息删除失败'
+        self.args['success']='初始化登录工具删除成功'
+        self.args['err']='初始化登录工具删除失败'
         self.args['type']='logininitools'
         return self.do_logininfo_delete()
         
