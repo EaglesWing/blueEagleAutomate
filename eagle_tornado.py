@@ -6,7 +6,7 @@ sys.setdefaultencoding('utf-8')
 import tornado
 from tornado import web, ioloop, options, httpserver, websocket
 from tornado.options import define, options
-import os, re, json, comm_lib, datetime, time, encrypt, tenjin, base64, uuid, csv, torndb, functools, Queue, random, copy, shutil, user_table, urllib2
+import os, re, json, comm_lib, datetime, time, encrypt, tenjin, base64, uuid, csv, torndb, functools, Queue, random, copy, shutil, user_table, urllib2, threading
 from tenjin.helpers import *
 # 这个并发库在python3自带;在python2需要安装sudo pip install futures
 from concurrent.futures import ThreadPoolExecutor
@@ -187,7 +187,10 @@ class websocketHandler(tornado.websocket.WebSocketHandler):
         request_data=comm_lib.json_to_obj(data)
         if callable(getattr(self, request_data.get('request', None))):
             try:
-                getattr(self, request_data.get('request', None))(request_data)
+                #getattr(self, request_data.get('request', None))(request_data)
+                t=threading.Thread(target=getattr(self, request_data.get('request', None)), args=(request_data,))
+                t.setDaemon(True)
+                t.start()
             except:
                 log.warn('lineno:' + str(sys._getframe().f_lineno)+": "+str(sys.exc_info()))
                 #执行出错
