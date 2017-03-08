@@ -2214,7 +2214,7 @@ class mainHandler(baseHandler):
         else:
             checkret=int()
             for k in self.login_check_key:
-                if asset_propety.get(k):
+                if k in asset_propety:
                     checkret+=1
             if  checkret != len(self.login_check_key):
                 return get_ret(-1, "参数错误", status='err', isjson=False)
@@ -2814,7 +2814,7 @@ class mainHandler(baseHandler):
             logininfo=''
             tlps=''
             for k in login_info:
-                if [ i.get(j) for j in info_keys] == [ k.get(j) for j in info_keys]:
+                if [ i.get(j) for j in info_keys] == [ u'' if str(k.get(j,u'')) == 'None'  else k.get(j)  for j in info_keys ]:
                     if type == "initoolsmanager":
                         if k.get('tool_path'):
                             tlps=k.get('tool_path').split(os.sep)[-1]
