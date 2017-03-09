@@ -87,18 +87,17 @@ class clien(object):
         return self.do_check(ip, user, port, 
                                 pwd, file=file, timeout=5)
         
-    def do_check(self, ip, user, port, pwd, cmd=None, file=None, dest_file=None, isexcute=None, timeout=5):
+    def do_check(self, ip, user, port, pwd, cmd=None, file=None, dest_file=None, isexcute=None, timeout=15):
         '''服务器检查'''
         #使用expect而不使用paramiko的原因:paramiko有的场景不能登录成功;如ssh v2的keyboard-interactive认证场景
         log.info('execute cmd[%s] or file[%s]  on %s' % (cmd, file, ip))
         ret, detail=server_comm.ssh(ip, port, user, pwd, cmd=cmd, 
                                     file=file, isexcute=isexcute, 
                                     dest_file=dest_file, timeout=timeout)
+        log.info(detail)
         if not ret:
             log.warn('execute cmd[%s], file[%s] failed, on %s.' % (cmd, file, ip))
             raise Exception('failed')
-        else:
-            return log.info(detail)
             
     def check_success(self, reson, ip, c_user):
         if self.dotype in ['groupcheck', 'membercheck']:
