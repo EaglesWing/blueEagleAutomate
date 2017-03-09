@@ -1867,10 +1867,10 @@ class mainHandler(baseHandler):
         member_info=user_table.get_privilege_allocate_info(group=group)
         if member_info:
             if member_info[0]['member']:
-                member_list=[ i for i in member_info[0]['member'].split(',') if i ]
+                member_list=[ i.strip() for i in member_info[0]['member'].split(',') if i ]
 
         user_history=user_table.get_user_info()
-        user_info=[ i['user'] for i in user_history ]
+        user_info=[ i['user'].strip() for i in user_history ]
         return self.write(json.dumps({'leftdata':member_list, 'rightdata':user_info}, ensure_ascii=False))
         
         
@@ -1946,7 +1946,7 @@ class mainHandler(baseHandler):
         member_history=user_table.get_privilege_allocate_info(group=group)
         if member_history:
             if member_history[0]['privi_list']:
-                member_list=[ i for i in member_history[0]['privi_list'].split(',') if i ]
+                member_list=[ i.strip() for i in member_history[0]['privi_list'].split(',') if i ]
 
         privilege_history=user_table.get_privilege_info()
         #privilege_info={ i['name']:i['des'] for i in privilege_history }
@@ -1970,10 +1970,10 @@ class mainHandler(baseHandler):
         member_info=user_table.get_inform_account_info(name=account, type=type)
         if member_info:
             if member_info[0]['member']:
-                member_list=[ i for i in member_info[0]['member'].split(', ') if i ]
+                member_list=[ i.strip() for i in member_info[0]['member'].split(', ') if i ]
 
         contact_history=user_table.get_inform_contact_info(type=type)
-        contact_info=[ i['name'] for i in contact_history ]
+        contact_info=[ i['name'].strip() for i in contact_history ]
         return self.write(json.dumps({'leftdata':member_list, 'rightdata':contact_info}, ensure_ascii=False))
         
     def getresult_serverinit(self):
@@ -2266,7 +2266,7 @@ class mainHandler(baseHandler):
         user_group_list=[]
         
         owner_group_info=user_table.get_privilege_allocate_info(user=user)
-        user_group_list=[ i['name'] for i in owner_group_info if i['name']]
+        user_group_list=[ i['name'].strip() for i in owner_group_info if i['name']]
 
         group_history=user_table.get_group_info()
         for i in group_history:

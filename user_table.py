@@ -1104,12 +1104,21 @@ class user_table(object):
         sql='''update %s  set member=replace(member, ', %s', ''), opertion_time=now(), type="member_delete", opertion_user='%s' where member regexp '", %s,"' ''' % (self.t_privilege_allocate, user, oper_user, user)
         return  [self.db, sql]
 
-    @sql_result()
     def delete_group_info(self, group):
+        self.delete_group(group)
+        self.delete_privilege_allocate_info(group)
+        return True
+        
+    @sql_result()
+    def delete_privilege_allocate_info(self, group):
+        sql='''delete from %s where name='%s' ''' % (self.t_privilege_allocate, group)
+        return  [self.db, sql]
+    
+    @sql_result()
+    def delete_group(self, group):
         sql='''delete from %s where name='%s' ''' % (self.t_group_info, group)
         return  [self.db, sql]
     
-
     @sql_result()
     def privilege_group_member_update(self, group, member, oper_user, type=None):
         sql=''' replace into %s (name, privi_list, member, type, time, user) values('%s', privi_list, ', %s', now(), '%s', '%s') ''' % (self.t_privilege_allocate, group, member, type, oper_user)
