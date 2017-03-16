@@ -3281,6 +3281,7 @@ mainmodule.directive('dotaskrelevance',function(){
                                 angular.element('div#relevancetype div.dropdown').dropdown('set selected', tdd['relevance_type'])
                                 scope.$parent.task.taskcreate.relevance.relevancetypedes=tdd['relevance_type_des']
                                 scope.$parent.task.taskcreate.relevance.relevanceid=tdd['relevance_id']
+                                angular.element('div#relevanceid input').prop('disabled', true)
                                 scope.$parent.task.taskcreate.relevance.relevancename=tdd['relevance_name']
                                 scope.$parent.task.taskcreate.relevance.relevanceremark=tdd['relevance_remark']
                                 scope.$parent.task.taskcreate.relevance.relevancerely=tdd['relevance_rely']

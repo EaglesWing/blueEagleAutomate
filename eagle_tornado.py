@@ -1970,7 +1970,7 @@ class mainHandler(baseHandler):
         member_info=user_table.get_inform_account_info(name=account, type=type)
         if member_info:
             if member_info[0]['member']:
-                member_list=[ i.strip() for i in member_info[0]['member'].split(', ') if i ]
+                member_list=[ i.strip() for i in member_info[0]['member'].split(',') if i ]
 
         contact_history=user_table.get_inform_contact_info(type=type)
         contact_info=[ i['name'].strip() for i in contact_history ]
@@ -3664,7 +3664,7 @@ class mainHandler(baseHandler):
                         if i['name'] == 'admin':
                             isadmin=True
                             
-                        if privi_name in str(i['privi_list']).split(', '):
+                        if privi_name in str(i['privi_list']).split(','):
                             has_privi=True
 
                     if not has_privi and not isadmin and self.args['curruser'] != 'admin':
