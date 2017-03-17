@@ -1131,7 +1131,7 @@ class user_table(object):
         elif group and not user:
             sql=''' select * from  %s where  name='%s' '''  % (self.t_privilege_allocate, group)
         elif not group and user:
-            sql=''' select * from  %s where  member  regexp ',[ ]{0,}%s' '''  % (self.t_privilege_allocate, user)
+            sql=''' select * from  %s where  member  regexp ',{0,}[ ]{0,}%s' '''  % (self.t_privilege_allocate, user)
         elif group and user:
             sql=''' select * from  %s where name='%s' and member  regexp ',[ ]{0,}%s' '''  % (self.t_privilege_allocate, group, user)
         return  [self.db, sql]

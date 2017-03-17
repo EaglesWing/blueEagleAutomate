@@ -423,11 +423,26 @@ class mainHandler(baseHandler):
         tornado_server_info=str(tornado_ip)+':'+str(tornado_port)+"/online/websocket"
         return self.write(json.dumps({'url':tornado_server_info}))
         
+    def get_comm_privileges(self):
+        commprilist=['mainHandler.main_html', 'mainHandler.loginout_html']
+        return commprilist
+
     def main_html(self):
         '''
         self-privilege::主页面::用户登录-平台主界面
         '''
         context={'username':self.args['curruser']}
+        user_group=[]
+        user_privilist=[]
+        for k,v in self.args['groupdatainfo'].iteritems():
+            if v.get('privi_list'):
+                user_privilist+=v.get('privi_list').split(',')
+            user_group.append(k)
+
+        context.update({
+            'user_privilist':user_privilist,
+            'user_group':user_group
+        })
         self.write(tj_render(self.args['filepath'], context))
 
     def loginout_html(self):
@@ -1835,7 +1850,10 @@ class mainHandler(baseHandler):
         ckdt={ i['name']:i for i in check}
 
         for i in ckdt.keys():
-            if not re.match(r'.*, %s' % user, ckdt[i]['member']):
+            member=ckdt[i]['member']
+            if not member:
+                member=''
+            if not re.match(r'.*,{0,}[ ]{0,}%s,{0,}' % user, member):
                 continue
                 
             if i not in new_data:
@@ -1925,9 +1943,10 @@ class mainHandler(baseHandler):
         if not data:
             data=''
         if isinstance(data, dict):
-            data=', '.join(data.keys())
+            data=','.join(data.keys())
         elif isinstance(data, list):
-            data=', '.join(comm_lib.filter_int(data))
+            data=','.join(comm_lib.filter_int(data) 
+                +  self.get_comm_privileges())
         if not user_table.privilege_peivilege_member_update(group, data, self.args['curruser']):
             return self.write(get_ret(-2, group + '组成员权限变更失败', status='err'))
         return self.write(get_ret(0, group + '组成员权限变更成功', status='info'))   
@@ -3651,6 +3670,8 @@ class mainHandler(baseHandler):
                     privi_name=self.__class__.__name__+"."+self.method
                     has_privi=False
                     isadmin=False
+                    grouplist=[]
+                    groupdatainfo={}
                     
                     privi_list=user_table.get_privilege_allocate_info(user=self.args['curruser'])
                     if not privi_list and self.args['curruser'] != 'admin':
@@ -3663,14 +3684,17 @@ class mainHandler(baseHandler):
                             
                         if i['name'] == 'admin':
                             isadmin=True
-                            
+                        grouplist.append(i['name'])
+                        groupdatainfo[i['name']]=i
+
                         if privi_name in str(i['privi_list']).split(','):
                             has_privi=True
 
                     if not has_privi and not isadmin and self.args['curruser'] != 'admin':
                         #没有权限执行当前函数
                         return self.write(get_ret(-98, '你没有当前请求权限', status='err'))
-                        
+                    self.args['grouplist']=grouplist     
+                    self.args['groupdatainfo']=groupdatainfo     
                     apply(getattr(self, self.method))
                 except:
                     log.warn('lineno:' + str(sys._getframe().f_lineno)+": "+str(sys.exc_info()))
@@ -3916,7 +3940,7 @@ def time_check():
     else:
         return True
 
-def privilege_set(dest_obj_list):
+def privilege_set(dest_obj_list, getkey=None):
     #遍历需要控制权限的class和class的方法，把信息列表入库, 为权限分配做准备
     #需要控制权限的方法需要添加doc信息
     #doc格式为:^self-privilege::[^ ]+::[^ ]+$
@@ -3924,6 +3948,7 @@ def privilege_set(dest_obj_list):
     
     log.info('set privilege info begin.')
     fn_doc=''
+    key_l=[]
     for i in globals().keys():
         if i in dest_obj_list:
             for f in dir(globals()[i]):
@@ -3934,11 +3959,21 @@ def privilege_set(dest_obj_list):
                 if not re.match(r'^self-privilege::[^:]+::[^:]+$', fn_doc):
                     log.err('set %s privilege err.doc info err.skip' % f)
                     continue
-                key, des, remark=fn_doc.split('::')
+                    
                 name=i+"."+f
+                if getkey:
+                    if re.match('.*%s.*' % getkey, fn_doc):
+                        key_l.append(name)
+                    continue
+                   
+                key, des, remark=fn_doc.split('::')
                 if not user_table.privilege_info_add(name, des, remark):
                     log.err('privilege info set err.')
-    log.info('privilege info set done.')
+                    
+    if  getkey:
+        return key_l
+    else:
+        log.info('privilege info set done.')
 
 def get_methodlist(clslist):
     global requestlist, interfacelist
