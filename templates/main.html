@@ -57,7 +57,7 @@
                     <?py #endif ?>
                        
                     <?py ptxt=''?>
-                    <?py for i in [{'get_servergroup_main_page':{'key':'servergroup', 'des':'主机组管理'}}, {'get_gamezone_main_page':{'key':'gamezone', 'des':'游戏区管理'}}]:?>
+                    <?py for i in [{'get_servergroup_main_page':{'key':'servergroup', 'des':'主机组管理'}}]:?>
                     <?py for k,v in i.iteritems():?>
                         <?py if 'mainHandler.'+k in user_privilist or 'admin' in user_group:?>
                             <?py ptxt+='<div id="'+v.get('key')+'" class="item">'+v.get('des')+'</div>'?>    
