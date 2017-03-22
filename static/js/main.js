@@ -2516,7 +2516,7 @@ mainmodule.directive('opertiondialog',function(){
                     var url='get_dialog_info_'+id
                     var commiturl='commit_dialog_info_'+id
                     var title="权限变更"
-                    var child_title_left='所属组'
+                    var child_title_left='权限信息'
                     var child_title_right='权限列表'
                     var name=fdm.find('td:eq(0)').text().trim()
                 }else if(id=="account"){
@@ -2593,13 +2593,28 @@ mainmodule.directive('opertiondialog',function(){
       
                             if(rightdata.length!=0){
                                 var rdm=md.find('div.rightdata')
+                                var rrdm=''
                                 for(i in rightdata){
-                                    if(id=="user"||id=="privilege"){
+                                    if(id=="user"){
                                         scope.$parent.dialogdata.left[rightdata[i]]=scope.$parent.dialogdata.right[rightdata[i]]
+                                    }else if(id=="privilege"){
+                                        var tk=rightdata[i]
+                                        rrdm=md.find('.rightdata').find('input[name="'+tk+'"]')
+
+                                        if(rrdm.parent().is('#father')){
+                                            var tv=scope.$parent.dialogdata.right[rightdata[i]]['des']
+                                        }else if(rrdm.parent().is('#child')){
+                                            var pname=rrdm.parent().parent().parent().parent().parent().parent().prev().find('input').attr('name')
+                                            console.log(pname)
+                                            var tv=scope.$parent.dialogdata.right[pname]['childlist'][rightdata[i]]
+                                        }
+
+                                        scope.$parent.dialogdata.left[tk]=tv
+
                                     }else if(id=="group"||id=="account"){
                                         scope.$parent.dialogdata.left.push(rightdata[i])
                                     }
-                                    
+
                                     // 触发dialogrightcheck 监听的left失败,angular bug,原因未知,使用jq
                                     angular.forEach(rdm.find('input'), function(data){
                                         var tdm=angular.element(data)
@@ -2653,13 +2668,17 @@ mainmodule.directive('dialogrightcheck',function(){
             attrs.$observe('left',function(value){
                 //右边监听左边
                 var name=element.attr('name')
+                var pdm=element.parent()
+                
                 for(i in scope.$parent.dialogdata.leftkeyvalue){
                     if(scope.$parent.dialogdata.leftkeyvalue[i] == name){
                         element.prop({
                             'checked':true,
                             'disabled':true
                         })
-                       
+                        if(pdm.is('#child')){
+                            pdm.parent().parent().parent().parent().parent().prev().find('label').css('color', 'red')
+                        }
                         scope.$parent.dialogdata.rightkeyvalue.splice(scope.$parent.dialogdata.rightkeyvalue.indexOf(scope.$parent.dialogdata.leftkeyvalue[i]),1)
                     }
                 }
@@ -2718,13 +2737,45 @@ mainmodule.directive('rightchecked',function(){
                 var name=dm.attr("name")
                 var id=dm.attr('id')
                 
+                var pdm=element.parent()
+                
+                scope.addv=function(n){
+                    if(scope.$parent.dialogdata.rightcheckeddata.indexOf(n)==-1){
+                        scope.$parent.dialogdata.rightcheckeddata.push(n)
+                    }
+                }
+                scope.removev=function(nn){
+                    if(scope.$parent.dialogdata.rightcheckeddata.indexOf(nn)!=-1){
+                        scope.$parent.dialogdata.rightcheckeddata.splice(scope.$parent.dialogdata.rightcheckeddata.indexOf(nn), 1)
+                    }
+                }
                 if(dm.prop('checked')==true){
-                    if(scope.$parent.dialogdata.rightcheckeddata.indexOf(name)==-1){
-                        scope.$parent.dialogdata.rightcheckeddata.push(name)
+                    if(pdm.is('#father')){
+                        scope.addv(name)
+                        angular.forEach(pdm.parent().next().find('div.item'), function(d){
+                            var tttd=angular.element(d)
+                            var nnn=tttd.find('#child input').attr('name')
+                            if(!tttd.find('#child input').prop('disabled')){
+                                tttd.find('#child input').prop('checked', true)
+                            }
+                            scope.addv(nnn)
+                        })
+                    }else{
+                        scope.addv(name)
                     }
                 }else{
-                    if(scope.$parent.dialogdata.rightcheckeddata.indexOf(name)!=-1){
-                        scope.$parent.dialogdata.rightcheckeddata.splice(scope.$parent.dialogdata.rightcheckeddata.splice.indexOf(name), 1)
+                    if(pdm.is('#father')){
+                        scope.removev(name)
+                        angular.forEach(pdm.parent().next().find('div.item'), function(d){
+                            var tttd=angular.element(d)
+                            var nnn=tttd.find('#child input').attr('name')
+                            if(!tttd.find('#child input').prop('disabled')){
+                                tttd.find('#child input').prop('checked', false)
+                            }
+                            scope.removev(nnn)
+                        })
+                    }else{
+                        scope.removev(name)
                     }
                 }
             })

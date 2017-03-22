@@ -1,5 +1,5 @@
 <div class="ui middle aligned animated  celled  list">
-    <?py if type=="user" or type == "privilege":?>
+    <?py if type in ["user"]:?>
         <div class="item" ng-repeat="(k,v) in dialogdata.right">
             <div class="ui checkbox" seta="{{$parent.dialogdata.rightkey(k)}}">
                 <!--div>右边监听左边</div-->
@@ -7,7 +7,34 @@
                 <label rightchecked>{{v}}</label>
             </div>
         </div>
-    <?py elif type == "group" or type == "account":?>
+    <?py elif type in ["privilege"]:?>
+        <div class="item" ng-repeat="(k,v) in dialogdata.right">
+            <div class="content">
+                <div class="ui accordion" accordion>
+                    <div name="{{k}}" class="title bread" style="padding-top:1px;padding-bottom:1px">
+                        <div id="father" class="ui checkbox" seta="{{$parent.dialogdata.rightkey(k)}}">
+                            <input id="user" type="checkbox" name="{{k}}" left="$parent.dialogdata.leftkeyvalue" dialogrightcheck>
+                            <label rightchecked>{{v.des}}</label>
+                        </div>
+                    </div>
+                    <div class="content">
+                        <ul class="ui celled animated list" style="padding-left:10px">
+                            <div class="item" ng-repeat="(kk,vv) in v.childlist">
+                                <div class="ui accordion">
+                                    <div name="{{kk}}" class="title bread" style="padding-top:1px;padding-bottom:1px">
+                                        <div id="child" class="ui checkbox"  seta="{{$parent.dialogdata.rightkey(kk)}}">
+                                            <input id="user" type="checkbox" name="{{kk}}" left="$parent.dialogdata.leftkeyvalue"  dialogrightcheck>
+                                            <label rightchecked>{{vv}}</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?py elif type in ["group" , "account"]:?>
         <div class="item" ng-repeat="k in dialogdata.right">
             <div class="ui checkbox" seta="{{$parent.dialogdata.rightkey(k)}}">
                 <!--div>右边监听左边</div-->

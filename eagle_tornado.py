@@ -27,6 +27,7 @@ def get_list(data):
         return []
     else:
         return data.split(',')
+
         
 def get_ret(code, message, status='info', isjson=True):
     #status:info/err/warning
@@ -43,7 +44,7 @@ def tj_render(filepath, context=None):
     #context默认
     filepath=curr_path+os.sep+filepath.replace(curr_path, '')
     if not os.path.exists(filepath):
-       return get_ret(-8, 'tenjin file path err.', status='err')
+        return get_ret(-8, 'tenjin file path err.', status='err')
     if filepath.find(os.sep) != -1:
         fp=re.match(r'(.*)%s(.*)'%os.sep, filepath).group(1)
         fn=re.match(r'(.*)%s(.*)'%os.sep, filepath).group(2)
@@ -88,7 +89,7 @@ def request_twisted(request, long=None):
 
     if long:
         #长链接时候设置超时时间为30分左右
-        sock.settimeout(20000)
+        sock.settimeout(600)
         return sock
     else:
         sock.settimeout(10)
@@ -158,7 +159,7 @@ class websocketHandler(tornado.websocket.WebSocketHandler):
                     #3分钟收不到数据就退出, 避免阻塞
                     break;
                 count+=1
-                sleep(0.2)
+                sleep(0.5)
                 continue
 
             count=int()
@@ -503,7 +504,7 @@ class mainHandler(baseHandler):
 
     def get_fault_main_page(self):
         '''
-        self-privilege::故障处理::任务管理-故障处理
+        self-privilege::故障处理主界面::任务管理-故障处理
         '''
         faultinfo=user_table.get_fault_info()
         name=[]
@@ -517,14 +518,14 @@ class mainHandler(baseHandler):
 
     def get_taskcreate_main_page(self):
         '''
-        self-privilege::任务创建界面::任务管理-任务创建
+        self-privilege::任务创建主界面::任务管理-任务创建
         '''
         context=self.get_group_property()
         return self.write(tj_render('templates/task/taskcreate.html', context))
         
     def get_taskhistory_main_page(self):
         '''
-        self-privilege::历史任务界面::任务管理-任务记录
+        self-privilege::任务记录主界面::任务管理-任务记录
         '''
         history=user_table.get_task_history()
         relevance=user_table.get_task_relevance()
@@ -538,28 +539,28 @@ class mainHandler(baseHandler):
         
     def get_informationcollect_main_page(self):
         '''
-        self-privilege::信息收集界面::任务管理-信息收集
+        self-privilege::信息收集主界面::任务管理-信息收集
         '''
         context={}
         return self.write(tj_render('templates/task/informationcollect.html', context))
         
     def get_taskcustom_main_page(self):
         '''
-        self-privilege::自定义任务界面::任务管理-自定义任务
+        self-privilege::自定义任务主界面::任务管理-自定义任务
         '''
         context={}
         return self.write(tj_render('templates/task/taskcustom.html', context))
         
     def get_serverlogin_main_page(self):
         '''
-        self-privilege::服务器登录管理::资产管理-登录管理
+        self-privilege::登录管理主界面::资产管理-登录管理
         '''
         context={}
         return self.write(tj_render('templates/asset/server_login.html', context))
 
     def get_serverinit_main_page(self):
         '''
-        self-privilege::服务器初始化页面::资产管理-服务器初始化
+        self-privilege::初始化管理主界面::资产管理-初始化管理
         '''
         context={}
         return self.write(tj_render('templates/asset/server_init.html', context))
@@ -588,7 +589,7 @@ class mainHandler(baseHandler):
     
     def get_asset_main_page(self):
         '''
-        self-privilege::资产管理页面::资产管理-资产管理
+        self-privilege::资产管理主界面::资产管理-资产管理
         '''
         display_keys=self.get_asset_template_keys()
         history_keys=self.get_asset_history_key('history')
@@ -598,14 +599,14 @@ class mainHandler(baseHandler):
         
     def get_inform_main_page(self):
         '''
-        self-privilege::通知管理页面::权限管理-通知管理
+        self-privilege::通知管理主界面::权限管理-通知管理
         '''
         context={'selfgroup':self.get_selfgroup()}
         return self.write(tj_render('templates/privilege/inform.html', context))
 
     def get_usergroup_main_page(self):
         '''
-        self-privilege::用户组管理页面::权限管理-用户组管理
+        self-privilege::用户组管理主界面::权限管理-用户组管理
         '''
         context={'selfgroup':self.get_selfgroup()}
         return self.write(tj_render('templates/privilege/user_group.html', context))
@@ -794,7 +795,7 @@ class mainHandler(baseHandler):
         
     def get_servergroup_main_page(self):
         '''
-        self-privilege::主机组管理页面::主机管理-主机组管理
+        self-privilege::主机组管理主界面::主机管理-主机组管理
         '''
         self.args['dotype']="mainpage"
         info=self.do_get_servergroup_info()
@@ -863,14 +864,14 @@ class mainHandler(baseHandler):
 
     def get_key_main_page(self):
         '''
-        self-privilege::key管理页面::权限管理-key管理
+        self-privilege::key管理主界面::权限管理-key管理
         '''
         context={'selfgroup':self.get_selfgroup()}
         return self.write(tj_render('templates/privilege/key.html', context))
 
     def get_privilege_main_page(self):
         '''
-        self-privilege::权限分配页面::权限管理-权限分配
+        self-privilege::权限分配主界面::权限管理-权限分配
         '''
         context={'selfgroup':self.get_selfgroup()}
         return self.write(tj_render('templates/privilege/privilege.html', context))
@@ -1247,7 +1248,7 @@ class mainHandler(baseHandler):
         
     def get_task_relevance_history(self):
         '''
-        self-privilege::获取任务关联记录信息::任务关联-任务创建界面前端自动加载
+        self-privilege::获取任务关联记录信息::任务关联-任务创建-任务创建界面前端自动加载
         '''
         name=self.args.get('name')
         type=self.args.get('type')
@@ -1268,7 +1269,7 @@ class mainHandler(baseHandler):
         
     def get_task_relevance_info(self):
         '''
-        self-privilege::获取任务关联信息::任务关联-任务创建界面前端自动加载
+        self-privilege::获取任务关联信息::任务关联-任务创建-任务创建界面前端自动加载
         '''
         info=user_table.get_task_relevance()
         data={}
@@ -1596,7 +1597,7 @@ class mainHandler(baseHandler):
         
     def get_ngrepeat_data_appdetails(self):
         '''
-        self-privilege::获取主机组分类详情信息::主机管理-主机组管理页面前端自动加载
+        self-privilege::获取主机组分类详情信息::主机管理-主机组管理-主机组管理页面前端自动加载
         '''
         self.args['type']="appdetails"
         self.args['infotype']="serverapp"
@@ -1604,7 +1605,7 @@ class mainHandler(baseHandler):
         
     def get_ngrepeat_data_serverdetails(self):
         '''
-        self-privilege::获取自定义任务信息::任务管理-自定义任务页面前端自动加载
+        self-privilege::获取自定义任务信息::任务管理-自定义任务-自定义任务页面前端自动加载
         '''
         self.args['type']="serverdetails"
         self.args['infotype']="serverhost"
@@ -1612,7 +1613,7 @@ class mainHandler(baseHandler):
 
     def get_ngrepeat_data_servergroup(self):
         '''
-        self-privilege::获取主机组分类和主机组信息::主机管理-主机组管理页面前端自动加载
+        self-privilege::获取主机组分类和主机组信息::主机管理-主机组管理-主机组管理页面前端自动加载
         '''
         line=self.args.get('line')
         product=self.args.get('product')
@@ -1716,7 +1717,7 @@ class mainHandler(baseHandler):
         
     def get_ngrepeat_data_taskinfo(self):
         '''
-        self-privilege::获取主机组详情信息::主机管理-主机组管理页面前端自动加载
+        self-privilege::获取主机组详情信息::主机管理-主机组管理-主机组管理页面前端自动加载
         '''
         key=self.args.get('key')
         if key:
@@ -1755,7 +1756,7 @@ class mainHandler(baseHandler):
 
     def get_ngrepeat_data_taskhistoryinfo(self):
         '''
-        self-privilege::获取任务记录::任务管理-任务记录页面前端自动加载
+        self-privilege::获取任务记录::任务管理-任务记录-任务记录页面前端自动加载
         '''
         return self.write(json.dumps(self.get_task_history(), ensure_ascii=False))
         
@@ -1923,9 +1924,9 @@ class mainHandler(baseHandler):
         if not data:
             data=''
         if isinstance(data, dict):
-            data=', '.join(data.keys())
+            data=','.join(data.keys())
         elif isinstance(data, list):
-            data=', '.join(comm_lib.filter_int(data))
+            data=','.join(comm_lib.filter_int(data))
             
         if not user_table.account_contact_info_update(name, type, data, self.args['curruser']):
             return self.write(get_ret(-2, name + '账号成员变更失败', status='err'))
@@ -1955,6 +1956,9 @@ class mainHandler(baseHandler):
         '''
         self-privilege::权限变更获取权限信息::权限管理-权限分配-权限分配-权限变更
         '''
+        def find_mainpage_id(des):
+            return privilege_set(['mainHandler'], findkey=des)
+            
         group=self.args.get('name', None)
         if not group:
             return self.write(get_ret(-1, '参数错误, 不完整', status='err'))
@@ -1968,12 +1972,35 @@ class mainHandler(baseHandler):
                 member_list=[ i.strip() for i in member_history[0]['privi_list'].split(',') if i ]
 
         privilege_history=user_table.get_privilege_info()
-        #privilege_info={ i['name']:i['des'] for i in privilege_history }
+
+        finded={}
         for i in privilege_history:
-            privilege_info[i['name']]=i['des']
+            remark=i.get('remark')
+            mainpageid=''
+            if not re.match(r'.*-.*', remark):
+                mainpageid=i.get('name')
+                mainpagedes=i.get('des')
+            elif re.match(r'.*主界面.*', remark.split('-')[0]):
+                mainpageid=i.get('name')
+                mainpagedes=i.get('des')
+            else:
+                mainpagedes=remark.split('-')[1]
+                if mainpagedes not in finded:
+                    mainpageid=find_mainpage_id(mainpagedes)
+                    finded.update({mainpagedes:mainpageid})
+                else:
+                    mainpageid=finded.get(mainpagedes)
+            if not mainpageid:
+                mainpageid=i.get('name')
+                mainpagedes=i.get('des')
+            privilege_info.setdefault(mainpageid, {})
+            privilege_info[mainpageid].setdefault('childlist', {})
+            privilege_info[mainpageid].setdefault('des', mainpagedes)
+            if i['name'] != mainpageid:
+                privilege_info[mainpageid]['childlist'][i['name']]=i['des']
             if i['name'] in member_list:
                 member_dict[i['name']]=i['des']
-        
+
         return self.write(json.dumps({'leftdata':member_dict, 'rightdata':privilege_info}, ensure_ascii=False))
         
     def get_dialog_info_account(self):
@@ -3940,7 +3967,7 @@ def time_check():
     else:
         return True
 
-def privilege_set(dest_obj_list, getkey=None):
+def privilege_set(dest_obj_list, getkey=None, findkey=None):
     #遍历需要控制权限的class和class的方法，把信息列表入库, 为权限分配做准备
     #需要控制权限的方法需要添加doc信息
     #doc格式为:^self-privilege::[^ ]+::[^ ]+$
@@ -3965,9 +3992,18 @@ def privilege_set(dest_obj_list, getkey=None):
                     if re.match('.*%s.*' % getkey, fn_doc):
                         key_l.append(name)
                     continue
-                   
+
                 key, des, remark=fn_doc.split('::')
-                if not user_table.privilege_info_add(name, des, remark):
+                if findkey :
+                    dk=str(findkey) + '主界面'
+                    if dk == des: 
+                        return name
+                    elif re.match(r'.*/.*', findkey):
+                        odk=str(findkey.split('/')[0]) + '主界面'
+                        tdk=str(findkey.split('/')[1]) + '主界面'
+                        if odk == des or tdk == des:
+                            return name
+                elif not user_table.privilege_info_add(name, des, remark):
                     log.err('privilege info set err.')
                     
     if  getkey:
