@@ -1846,32 +1846,39 @@ class mainHandler(baseHandler):
         if not user:
             return self.write(get_ret(-1, '参数错误, 不完整', status='err'))
 
-        new_data={ i:'' for i in list(set(data))}
         check=user_table.get_privilege_allocate_info()
         ckdt={ i['name']:i for i in check}
 
-        for i in ckdt.keys():
-            member=ckdt[i]['member']
+        allgroup=user_table.get_privilege_allocate_info(user=user)
+        for i in allgroup:
+            member=i.get('member')
+            group=i.get('name')
             if not member:
-                member=''
-            if not re.match(r'.*,{0,}[ ]{0,}%s,{0,}' % user, member):
+                member=[]
+            else:
+                member=member.split(',')
+            
+            if group not in data:
+                del member[member.index(user)]
+
+            user_table.privilege_user_group_update(group, ','.join(member), 
+                    self.args['curruser'], type="group_change")
+            if  group in data:
+                del data[data.index(group)]
+
+        for i in data:
+            group=i
+            gdt=ckdt.get(group, {})
+            if not gdt:
                 continue
+            member=gdt.get('member')
+            if not member:
+                member=[user]
+            else:
+                member=member.split(',')
                 
-            if i not in new_data:
-                new_data[i]=1
-            else:
-                del new_data[i]
-
-        for g in new_data.keys():
-            if not ckdt.get(g):
-                continue 
-            if new_data[g] or ckdt[g]['member']:
-                #组存在直接修改成员
-                user_table.privilege_user_group_update(g, user, self.args['curruser'], updatemember=True, type="group_change")
-            else:
-                #组不存在, 生成记录
-                user_table.privilege_user_group_update(g, user, self.args['curruser'], type="group_create")
-
+            user_table.privilege_user_group_update(group, ','.join(member), 
+                    self.args['curruser'], type="group_change")
         return self.write(get_ret(0, user + '组变更成功', status='info'))
     
     def get_dialog_info_group(self):

@@ -1059,15 +1059,12 @@ class user_table(object):
     def privilege_peivilege_member_update(self, group, data, user):
         sql='''update %s set privi_list='%s', type='privilege_change', opertion_time=now(), opertion_user='%s' where name='%s' '''  % (self.t_privilege_allocate, data, user, group)
         return  [self.db, sql]
-        
+
     @sql_result()
-    def privilege_user_group_update(self, group, user, oper_user, updatemember=False, type=None):
-        if updatemember:
-            sql='''update %s set member=case when member regexp ',[ ]{0,}%s' then replace(member, ', %s', '')  else  concat(case when member is NULL then '' else member end, ', %s')  end, opertion_user='%s', opertion_time=now() , type='%s'  where name='%s' ''' % (self.t_privilege_allocate, user, user, user , oper_user, type, group)
-        else:
-            sql='''replace into %s (name, privi_list, member, type, opertion_time, opertion_user) values('%s', privi_list, case when member regexp ',[ ]{0,}%s' then replace(member, ', %s', '')  else concat(case when member is NUll then '' else member end, ', %s') end, '%s',  now(), '%s') ''' % (self.t_privilege_allocate, group, user, user, user, type, oper_user)
+    def privilege_user_group_update(self, group, member, oper_user, type=None):
+        sql=''' update %s set member='%s',opertion_time=now(),opertion_user='%s' where name='%s' ''' % (self.t_privilege_allocate, member, oper_user, group)
         return  [self.db, sql]
-    
+ 
     @sql_result()
     def delete_contact_info(self, name):
         sql='''delete from %s where  name='%s' '''  % (self.t_inform_contact_info, name)
