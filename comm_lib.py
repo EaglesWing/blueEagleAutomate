@@ -1,6 +1,10 @@
 #!/usr/bin/python
 #coding=utf-8
-import logging, sys, os, re, socket, signal, json, datetime, time, struct, zipfile, shutil, telnetlib, threading, Queue, thread, urllib2, hashlib,smtplib
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
+import logging, os, re, socket, signal, json, datetime, time, struct, zipfile, shutil, telnetlib, threading, Queue, thread, urllib2, hashlib,smtplib, cookielib, urllib
 #from xml.etree import ElementTree as et
 from  xml.dom import minidom
 from email.mime.text import MIMEText
@@ -319,48 +323,50 @@ def getmd5(obj):
     return md5.hexdigest()
 
 def do_send_wechat(**kws):
-    #还未验证
-    
     #微信公众号上应用的CropID和Secret
-    id=kws.get('wechatid')
+    id=kws.get('weid')
+    user=kws.get('user')
     secret=kws.get('wechatsecret')
-    title='operation_platform'
     message=kws.get('message')
+    title='[operation_platform]%s' % message[:50]
     
     #获取access_token
     GURL="https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=%s&corpsecret=%s" % (id, secret)
-    result=urllib2.urlopen(urllib2.Request(GURL)).read()
-    dict_result = json.loads(result)
-    Gtoken=dict_result['access_token']
-
+    result=json.loads(urllib2.urlopen(urllib2.Request(GURL)).read())
+    token=result['access_token']
     #生成通过post请求发送消息的url
-    PURL="https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=%s" % Gtoken
+    puturl="https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=%s" % token
 
     #企业号中的应用id
     AppID=1
     #部门成员id，微信接收者
     UserID=1
-    #部门id，定义可接收消息的成员范围
-    PartyID=1
-
+    if user:
+       UserID=user 
     #生成post请求信息
     post_data = {
-        'touser':UserID,
-        'toparty':PartyID,
-        'msgtype:':text,
-        'agentid':AppID,
-        'text':{
-            'content':'标题:'+ title + '\n' + '内容:' + message
+        "touser":UserID,
+        "msgtype":'text',
+        "agentid":AppID,
+        "text":{
+            "content":message
         },
-        'safe':'0'
+        "safe":"0"
     }
-    json_post_data = json.dumps(post_data, ensure_ascii=False)
-    return urllib2.urlopen(PURL, json_post_data)
 
-def send_wechat(dbinfo, message):
+    header = {'Content-Type':'application/x-www-form-urlencoded','charset':'utf-8'}
+    cj_c = cookielib.CookieJar()
+    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj_c))
+    urllib2.install_opener(opener)
+    request=urllib2.Request(url=puturl, data=json.dumps(post_data, ensure_ascii=False), headers=header)
+    #request=urllib2.Request(url=puturl, data=urllib.urlencode(post_data))
+    response=json.loads(urllib2.urlopen(request).read())
+    return response
+
+def send_wechat(user, dbinfo, message):
     weid=dbinfo.get('wechatid')
     secret=dbinfo.get('wechatsecret')
-    return do_send_wechat(weid=weid, wechatsecret=secret, message=message)
+    do_send_wechat(weid=weid, wechatsecret=secret, message=message, user=user)
 
 def do_send_email(**kws):
     fromuser=kws.get('fromuser')

@@ -194,9 +194,15 @@ class clien(object):
             if type == 'email':
                 account[k].update({'pwd':decode_pwd(account[k].get('pwd'))})
                 d=threads.deferToThread(comm_lib.send_email, account[k], message=message)
+                d.addErrback(self.defer_show_expect)
             elif type == 'wechat':
-                d=threads.deferToThread(comm_lib.send_wechat, account[k], message=message)
-            d.addErrback(self.defer_show_expect)
+                member=account[k].get('member')
+                if not member:
+                    continue
+                member=member.split(',')
+                for u in member:
+                    d=threads.deferToThread(comm_lib.send_wechat, u, account[k], message)
+                    d.addErrback(self.defer_show_expect)
 
     def client_check_and_inform(self, data):
         '''检查有无登录信息和客户端是否在线及任务文件是否存在'''
