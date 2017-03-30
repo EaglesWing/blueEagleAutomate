@@ -23,10 +23,19 @@ def json_to_obj(data):
         return json.loads(data)
     except:
         return data
-        
+    
+def makedirs(filepath):
+    if not os.path.exists(os.path.split(filepath)[0]):
+        os.makedirs(os.path.split(filepath)[0])
+    
+def filecopy(source, dest):
+    if not isexists(source):
+        return 
+    makedirs(dest)
+    shutil.copy(source, dest)
+
 def write_file(file_path, file_obj, overwrite=False):
-    if not os.path.exists(os.path.split(file_path)[0]):
-        os.makedirs(os.path.split(file_path)[0])
+    makedirs(file_path)
     if file_obj:
         if not overwrite:
             k='a+'
@@ -46,10 +55,11 @@ def create_dirs(file_path):
         except:
             pass
         
+        
 def filter_int(data):
     return [ i for i in data if not isinstance(i, int) ]
          
-    
+
 def to_datetime_obj(time_str):
     if not time_str:
         return to_datetime_obj(str(datetime.datetime.now()).split('.')[0])
@@ -116,7 +126,7 @@ def pack_socket_data(data, data_type='str', dest_path=None, id=None):
 
     return dt
 
-def recv_data(skt):
+def recv_data(skt, getheader=False, getbody=False, header=None):
     buff=''
     r_len=0
     toal_len=0
@@ -140,12 +150,17 @@ def recv_data(skt):
                     if ln == 0:
                         return dt
                 #return dt
-                        
-    #首4字节是包长    
-    d=recv_data_from_socket(4)   
-    if not d:
-        return False
-    d_len=struct.unpack('I', d)[0]
+    if not getbody:                    
+        #首4字节是包长    
+        d=recv_data_from_socket(4) 
+        if not d:
+            return False
+        d_len=struct.unpack('I', d)[0]
+        if getheader:
+            return d_len
+    else:
+        d_len=header
+
     #第二4字节是类型
     r_d=recv_data_from_socket(4, recved=True)
     t_p=struct.unpack('I', r_d)[0]
@@ -218,6 +233,8 @@ def send_socket_data(skt, data, data_type='str', dest_path=None, id=None):
 
 class log:
     def __init__(self, log_name):
+        if not isexists(os.path.split(log_name)[0]):
+            os.makedirs(os.path.split(log_name)[0])
         #定义日志文件
         self.log_name=log_name
         #创建logger对象
@@ -380,10 +397,16 @@ def do_send_email(**kws):
     From='blueEagle'
     # 三个参数：第一个为文本内容，第二个 plain 设置文本格式，第三个 utf-8 设置编码
     message = MIMEText('%s' % msg, 'plain', 'utf-8')
+    #re零宽断言exp只支持定长字符串, 所以简单的匹配
+    #if re.match(r'(?<=<(\W+)>).*(?=<\/\1>)', msg):
+    if re.match(r'.*(<html>|<a>|<div>|<br>|<table>|<p>|<tr>|<td>).*', msg):
+        message = MIMEText('%s' % msg, 'html', 'utf-8')
+
     #添加邮件header
     message['From'] = Header(From, 'utf-8')
     message['To'] =  Header('%s' % touser, 'utf-8')
     message['Subject'] = Header(Subject, 'utf-8')
+
     try:
         #创建邮件对象，smtp发送邮件
         if re.match(r'^[0-9]+$', str(ssl_port)):
@@ -394,6 +417,7 @@ def do_send_email(**kws):
             smtpObj.starttls()
         except:
             pass
+        
         smtpObj.login(fromuser, pwd)
         #发送邮件，as_string显示详情
         smtpObj.sendmail(fromuser, touser, message.as_string())

@@ -4,8 +4,9 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-from twisted.internet import reactor,task,main
-from twisted.internet import threads,tcp
+from twisted.internet import reactor, task, main
+from twisted.internet import threads, tcp
+
 from twisted.internet.protocol import Protocol,Factory,defer
 from twisted.protocols.basic import LineReceiver,NetstringReceiver
 import os,time,copy,datetime,comm_lib,json,struct,shutil,server_comm,torndb,threading,socket,commands
@@ -16,6 +17,60 @@ from email.header import Header
 from errno import EWOULDBLOCK
 from daemon import Daemon
 
+from twisted.internet import epollreactor
+from select import epoll, EPOLLHUP, EPOLLERR, EPOLLIN, EPOLLOUT
+
+class posixbase_replace(epollreactor.EPollReactor):
+    def __init__(self):
+        #super有缺陷, 多重继承时候self始终是第一个class
+        #super(epollreactor.EPollReactor, self).__init__()
+        epollreactor.EPollReactor.__init__(self)
+        self.socketreadone={}
+        
+    def setfdfalse(self, fd):
+        self.socketreadone[fd]=False
+        
+    def setfdtrue(self, fd):
+        self.socketreadone[fd]=True
+    
+    def addto(self, skt):
+        self.doadd(skt, self._reads, self._writes, self._selectables,
+                    EPOLLIN, EPOLLOUT)
+
+    def _doReadOrWrite(self, selectable, fd, event):
+        why = None
+        inRead = False
+        if event & self._POLL_DISCONNECTED and not (event & self._POLL_IN):
+            if fd in self._reads:
+                inRead = True
+                why = CONNECTION_DONE
+            else:
+                why = CONNECTION_LOST
+        else:
+            try:
+                if selectable.fileno() == -1:
+                    why = _NO_FILEDESC
+                else:
+                    if event & self._POLL_IN:
+                        why = selectable.doRead()
+                        inRead = True
+                    if not why and event & self._POLL_OUT:
+                        why = selectable.doWrite()
+                        inRead = False
+            except:
+                why = sys.exc_info()[1]
+                log.err()
+
+        if self.socketreadone.get(fd):
+            try:
+                self._poller.modify(fd, EPOLLOUT)
+            except:
+                pass
+            del self.socketreadone[fd]
+        elif why:
+            self._disconnectSelectable(selectable, why, inRead)
+
+
 class transport_doread_replace(tcp.Connection):
     '''替换协议doread方法'''
     def __init__(self,skt, protocol, reactor=None):
@@ -24,24 +79,38 @@ class transport_doread_replace(tcp.Connection):
         
         self.socket = skt
         self.socket.setblocking(0)
-        self.fileno=self.socket.fileno
+        self.fileno=self.socket.fileno()
         self.protocol=protocol
-
+        
+    def getsocketdatadone(self, header):
+        data=comm_lib.recv_data(self.socket, getbody=True, header=header)
+        posixbase_replace.setfdtrue(self.fileno)
+        self.read_lock.release()
+        return self._dataReceived(data)
+        
     def doRead(self):
         self.read_lock.acquire()
         data=""
+        getdone=True
         try:
-            data=comm_lib.recv_data(self.socket)
+            data=comm_lib.recv_data(self.socket, getheader=True)
             if not data:
-                return 
+                return   
+            posixbase_replace.setfdfalse(self.fileno)
+            getdone=False
+            t=threading.Thread(target=self.getsocketdatadone, args=(data, ))
+            t.setDaemon(True)
+            t.start()
+        
         except socket.error as se:
             if se.args[0] == EWOULDBLOCK:
                 return
             else:
                 return main.CONNECTION_LOST
         finally:
-            self.read_lock.release()
-            return self._dataReceived(data)
+            if getdone:
+                self.read_lock.release()
+                return self._dataReceived(data)
 
 class clien(object):
     def __init__(self):
@@ -98,7 +167,7 @@ class clien(object):
         if not ret:
             log.warn('execute cmd[%s], file[%s] failed, on %s.' % (cmd, file, ip))
             raise Exception('failed')
-            
+
     def check_success(self, reson, ip, c_user):
         if self.dotype in ['groupcheck', 'membercheck']:
             state="online"
@@ -390,13 +459,13 @@ class server_factory(Factory, clien):
             'filenotexists'
         ]
         self.task_done_status=[
+            'done',
             "success", 
-            "offline", 
             'failed', 
             'timeout', 
             'logininfoerr', 
-            'filenotexists', 
-            'done'
+            "offline", 
+            'filenotexists'
         ]
         self.task_type=['prepro', 'common']
         self.task_success=['success', 'done']
@@ -1179,7 +1248,7 @@ class server_factory(Factory, clien):
             
         h_num=self.status_level.index(historystatus)
         t_num=self.status_level.index(status)
-        if t_num > h_num:
+        if t_num > h_num or (status in self.task_done_status and self.task_done_status.index(status) > self.task_done_status.index(historystatus)):
             historystatus=status
 
         for i in taskinfodata:
@@ -1335,7 +1404,9 @@ class server_factory(Factory, clien):
                     self.send_data(tip, file_source, dest_path=dest_path)
                 elif str(status) == '2':
                     #文件接收完成,可以进行下一步处理
-                    if isexcute != "yes":
+                    if not self.conn_check(ip):
+                        status='offline'
+                    elif isexcute != "yes":
                         status='success'
                     else:
                         status='sended'
@@ -1840,6 +1911,8 @@ if __name__=="__main__":
     if not client_deploy_path or not re.match(r'^/.*', client_deploy_path):
         print 'client deploy path err.'
         sys.exit()
+    posixbase_replace=posixbase_replace()
+    epollreactor.EPollReactor._doReadOrWrite=posixbase_replace._doReadOrWrite
     
     log=comm_lib.log(p_log)
     tw_info=getconf(p_twisted,attrname="name",attrvalue="twsited")
