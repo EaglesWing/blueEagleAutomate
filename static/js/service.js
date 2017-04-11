@@ -7,24 +7,6 @@ commmodule.service('commservice',function($http){
         }
         return list
     }
-    //this.get_callback=function(...list){
-    //    if(list.length==0){
-    //        console.log('get_callback err.parameter err.')
-    //        return false
-    //    }
-    //
-    //    var fn_name=list.shift()
-    //    function fn(response){
-    //        //默认参数长10
-    //        if(response!=undefined){
-    //            return fn_name(response,list[0],list[1],list[2],list[3],list[4],list[5],list[6],list[7],list[8],list[9])
-    //        }else{
-    //            return fn_name(list[0],list[1],list[2],list[3],list[4],list[5],list[6],list[7],list[8],list[9])
-    //        }
-    //    }
-    //    return fn
-    //};
-
     this.request_url=function(url,type,data,success,err, upload){
         if(!url){
             console.log('request_url err.url err.')
@@ -260,7 +242,7 @@ commmodule.service('commservice',function($http){
         return this.get_standard_modal(title, context, 'ui fullscreen modal')
     };
     this.get_confirm_modal=function(title,context){
-        return '<div class="ui small modal"><i class="close icon"></i><div class="header">'+title+'</div><div class="content"><p>'+context+'</p></div><div class="actions"><div class="ui negative button">No</div><div class="ui positive right labeled icon button">Yes<i class="checkmark icon"></i></div></div>'
+        return '<div class="ui small modal" modalhidden><i class="close icon"></i><div class="header">'+title+'</div><div class="content"><p>'+context+'</p></div><div class="actions"><div class="ui negative button">No</div><div class="ui positive right labeled icon button">Yes<i class="checkmark icon"></i></div></div>'
     };
     this.get_standard_modal=function(title,context, modaltype){
         if(context==undefined){

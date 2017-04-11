@@ -9,7 +9,13 @@
                         <div class="ui fluid step">
                             <i class="server icon"></i>
                             <div class="content">
-                            <div class="title">主机组</div>
+                            <?py if _context.get('stype') == 'hostprivilege':?>
+                                <div class="title">权限配置</div>
+                            <?py elif _context.get('stype') == 'hostprivilegelist':?>
+                                <div class="title">权限信息</div>
+                            <?py else:?>
+                                <div class="title">主机组</div>
+                            <?py #endif ?>
                             </div>
                         </div>
                     </div>
@@ -18,15 +24,15 @@
 
                 <div id="servergroup" class="leftdm ui accordion">
                     <?py for l in info:?>
-                        <div name="${l}" id="line" class="title bread"><i class="dropdown icon"></i> ${info[l]['des']} </div>
+                        <div name="${l}" id="line" stype="${_context.get('stype')}" class="title bread"><i class="dropdown icon"></i> ${info[l]['des']} </div>
                         <div class="content">
                             <div class="accordion">
                                 <?py for p,v in info[l]['product'].iteritems():?>
-                                    <div name="${p}" id="product" class="title bread"><i class="dropdown icon"></i> ${v} </div>
+                                    <div name="${p}" id="product" stype="${_context.get('stype')}" class="title bread"><i class="dropdown icon"></i> ${v} </div>
                                     <div class="content">
                                         <div class="accordion">
                                             <repeatdataupdate name="servergroup" list="servermanager.servergroup.appgrouplist.${l}_and_${p}" ></repeatdataupdate>
-                                            <div id="app" class="title bread" key="v" name="{{k}}" ng-repeat="(k,v) in servermanager.servergroup.appgrouplist.${l}_and_${p}" domafterhandle><i class="dropdown icon"></i> {{v.des}}</div>
+                                            <div id="app" stype="${_context.get('stype')}" class="title bread" key="v" name="{{k}}" ng-repeat="(k,v) in servermanager.servergroup.appgrouplist.${l}_and_${p}" domafterhandle><i class="dropdown icon"></i> {{v.des}}</div>
                                         </div>
                                     </div>
                                 <?py #endfor ?>    

@@ -34,7 +34,7 @@
                 </div>
             </div>
         </div>
-    <?py elif type in ["group" , "account"]:?>
+    <?py elif type in ["group" , "account", 'serverprivilege']:?>
         <div class="item" ng-repeat="k in dialogdata.right">
             <div class="ui checkbox" seta="{{$parent.dialogdata.rightkey(k)}}">
                 <!--div>右边监听左边</div-->

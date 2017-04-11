@@ -502,6 +502,20 @@ class mainHandler(baseHandler):
                 'app':applist
             }
 
+    def get_server_privilegelist_main_page(self):
+        '''
+        self-privilege::主机权限信息主界面::主机管理-权限信息
+        '''
+        self.args['stype']="hostprivilegelist"
+        return self.get_servergroup_main_page()
+        
+    def get_server_privilege_main_page(self):
+        '''
+        self-privilege::主机权限配置主界面::主机管理-权限配置
+        '''
+        self.args['stype']="hostprivilege"
+        return self.get_servergroup_main_page()
+        
     def get_fault_main_page(self):
         '''
         self-privilege::故障处理主界面::任务管理-故障处理
@@ -792,26 +806,46 @@ class mainHandler(baseHandler):
         self.args['dotype']='hostlabel'
         self.args['label']=self.args.get('data')
         return self.do_loginfo_modify()
-        
+            
     def get_servergroup_main_page(self):
         '''
         self-privilege::主机组管理主界面::主机管理-主机组管理
         '''
+        stype=self.args.get('stype')
+        if not stype:
+            stype='hostgroup'
+          
         self.args['dotype']="mainpage"
         info=self.do_get_servergroup_info()
-        context={'info':info}
+        context={'info':info, 'stype':stype}
         return self.write(tj_render('templates/servermanager/group.html', context))
         
     def get_servergroup_page(self):
+        ip=self.args.get('ip')
+        role=self.args.get('role')
         line=self.args.get('line')
         product=self.args.get('product')
         app=self.args.get('app')
         group=self.args.get('group')
         pgtype=self.args.get('pgtype')
         member=self.args.get('member')
-        if pgtype == "groupmember":
+        serverid=self.args.get('serverid')
+        
+        if (pgtype in ['search_server_privilege'] and (not serverid or not ip)) or (pgtype in ['get_server_privilege'] and not serverid):
+            return self.write(get_ret(-1, '参数错误', status='err'))
+        
+        if pgtype in ["groupmember", "server_privilege", "server_privilegelist"]:
             context={'line':line, 'product':product, 'app':app, 'group':group}
-            file='templates/servermanager/groupmember.html'
+            if pgtype == "server_privilege":
+                file='templates/servermanager/serverprivilege.html'
+            elif pgtype == "groupmember":
+                file='templates/servermanager/groupmember.html'
+                stype=self.args.get('stype')
+                context.update({'stype': stype}) 
+            elif pgtype == "server_privilegelist":
+                rolelist=user_table.get_server_privilege(line=line, product=product, app=app, group_id=group)
+                context.update({'rolelist': { i.get('id'):i.get('role') for i in rolelist if i.get('role') }})
+                file='templates/servermanager/serverprivilegelist.html'
         elif pgtype == "servergroup":
             context={'line':line, 'product':product, 'app':app}
             file='templates/servermanager/servergroup.html'
@@ -828,11 +862,67 @@ class mainHandler(baseHandler):
                 info={}
             context={'member':member, 'info':info}
             file='templates/servermanager/memberlabel.html'
+        elif pgtype == "get_server_privilege":
+            rolelist=user_table.get_server_privilege(id=serverid)
+            if not rolelist:
+                rolelist={}
+            else:
+                privilege=rolelist[0].get('privilege')
+                filelist=rolelist[0].get('filelist')
+                rolelist={
+                    'filelist': [ i for i in comm_lib.json_to_obj(filelist) if i ] if filelist else [],
+                    'privilege': comm_lib.json_to_obj(privilege) if privilege else []
+                }
+            return self.write(json.dumps(rolelist, ensure_ascii=False))
+            
+        elif pgtype == "search_server_privilege":
+            request={}
+            request.update({
+                'request':'search_server_privilege_filelist',
+                'ip':ip,
+                'serverid':serverid,
+                'c_user':self.args['curruser'],
+                'role':role
+            })
+            ret=request_twisted(request)
+            if ret == 0:
+                return self.write(get_ret(ret, '', status='info'))
+            else:
+                return self.write(get_ret(ret, ret, status='err'))
+            
         elif pgtype == "serverapp":   
             context={'line':line, 'product':product}
             file='templates/servermanager/app.html'
 
         return self.write(tj_render(file, context))
+
+    def get_server_privilege_filelist(self):
+        '''
+        self-privilege::获取主机权限对应的文件信息::主机管理-权限信息-服务器操作-选择规则
+        '''
+        self.args['pgtype']='get_server_privilege'
+        return self.get_servergroup_page()
+        
+    def search_server_privilege_filelist(self):
+        '''
+        self-privilege::查询主机权限对应的文件信息::主机管理-权限信息-服务器操作-选择规则
+        '''
+        self.args['pgtype']='search_server_privilege'
+        return self.get_servergroup_page()
+
+    def get_server_privilegelist(self):
+        '''
+        self-privilege::获取主机权限信息页面::主机管理-权限信息-点击主机组后获取
+        '''
+        self.args['pgtype']='server_privilegelist'
+        return self.get_servergroup_page()
+        
+    def get_server_privilege_config(self):
+        '''
+        self-privilege::获取主机权限配置页面::主机管理-权限配置-点击主机组后获取
+        '''
+        self.args['pgtype']='server_privilege'
+        return self.get_servergroup_page()
         
     def get_member_servergroup(self):
         '''
@@ -952,6 +1042,8 @@ class mainHandler(baseHandler):
         paramete_err=False
         if (not name or not des) and addtype in ['useradd', 'groupadd', 'taskcustom', 'collecttemplate']:
             paramete_err=True
+        elif not name and addtype in ['serverprivilege']:
+            paramete_err=True
         elif (not data or not relevance_id or not execute_time or not task_type or not relevanceinfo) and addtype in ['task_create']:
             paramete_err=True
         elif (not name or not des or not type) and addtype in ['contactadd']:
@@ -980,8 +1072,9 @@ class mainHandler(baseHandler):
                 paramete_err=False
             else:
                 paramete_err=True
+                
         #前端使用_and_分割取值
-        if  re.match(r'.*_and_.*', name):
+        if  re.match(r'.*_and_.*', name) and addtype != 'serverprivilege':
             return self.write(get_ret(-4, '添加失败,不能包含_and_字段', status='err'))
             
         if  paramete_err:
@@ -996,6 +1089,13 @@ class mainHandler(baseHandler):
             if not user_table.add_user_info(name, des, self.args['curruser']):
                 return self.write(get_ret(-2,  err, status='err'))
                 
+        elif addtype =="serverprivilege":
+            gdata=user_table.get_server_privilege(line=line, product=product, app=app, group_id=servergroup, role=name)
+            if gdata:
+                return self.write(get_ret(-2, '添加失败, 当前规则已经存在', status='err'))
+
+            ret=user_table.add_server_privilege(self.args['curruser'], line=line, product=product, app=app, group_id=servergroup, role=name)
+            
         elif addtype =="task_create":
             relevanceinfo=relevanceinfo[0]
             task_list=json.loads(relevanceinfo['task_list'])
@@ -1104,6 +1204,15 @@ class mainHandler(baseHandler):
         self.args['err']='关联任务失败'
         return self.do_addinfo()
         
+    def add_info_serverprivilege_html(self):
+        '''
+        self-privilege::服务器权限规则添加::主机管理-权限配置-添加规则
+        '''
+        self.args['addtype']='serverprivilege'
+        self.args['success']='主机组权限规则添加成功'
+        self.args['err']='主机组权限规则添加失败'
+        return self.do_addinfo()
+        
     def add_info_fault_html(self):
         '''
         self-privilege::故障处理信息提交::任务管理-故障处理-操作
@@ -1141,8 +1250,8 @@ class mainHandler(baseHandler):
         self-privilege::主机组成员添加::主机管理-主机组管理-添加成员
         '''
         self.args['addtype']='serverhost'
-        self.args['success']='主机组成员加成功'
-        self.args['err']='主机组成员加失败'
+        self.args['success']='主机组成员添加成功'
+        self.args['err']='主机组成员添加失败'
         return self.do_addinfo()
         
     def add_info_servergroup_html(self):
@@ -1403,6 +1512,14 @@ class mainHandler(baseHandler):
         self.args['dotype']='task_single_restart'
         return self.do_task_handel()
         
+    def serverprivilegelist_download(self):
+        '''
+        self-privilege::服务器权限下载文件::主机管理-权限信息-服务器操作-下载
+        '''
+        self.args['name']='serverprivilegelist'
+        self.args['err']='下载失败'
+        return self.file_download()
+        
     def task_log_download(self):
         '''
         self-privilege::下载任务日志::任务管理-任务记录-详情-下载日志
@@ -1581,6 +1698,14 @@ class mainHandler(baseHandler):
         }
         return self.write(json.dumps(context, ensure_ascii=False))
 
+    def get_ngrepeat_data_serverprivilegedetails(self):
+        '''
+        self-privilege::获取主机组权限规则信息::主机管理-主机组管理-权限配置页面前端自动加载
+        '''
+        self.args['type']="serverprivilegedetails"
+        self.args['infotype']="privileges"
+        return self.get_ngrepeat_data_servergroup()
+        
     def get_ngrepeat_data_taskservers(self):
         '''
         self-privilege::获取任务主机详情信息::任务管理-任务记录-详情界面自动加载
@@ -1624,13 +1749,16 @@ class mainHandler(baseHandler):
         searchlist=self.args.get('list')
         gettype=self.args.get('gettype')
 
-        if not servertype:
-            servertype="serverapp"
+        if type == 'serverprivilegedetails':
+            info=user_table.get_server_privilege(line=line, product=product, app=app, group_id=group)
+        else:
+            if not servertype:
+                servertype="serverapp"
+    
+            info=user_table.get_servergroup_info(line=line, product=product, app=app, group=group, type=servertype, searchlist=searchlist)
+            if servertype == "serverapp":
+                groupdata=user_table.get_servergroup_info(line=line, product=product, app=app, group=group, type='servergroup')
 
-        info=user_table.get_servergroup_info(line=line, product=product, app=app, group=group, type=servertype, searchlist=searchlist)
-        if servertype == "serverapp":
-            groupdata=user_table.get_servergroup_info(line=line, product=product, app=app, group=group, type='servergroup')
-            
         new_info={}
         newinfo=[]
         for i in info:
@@ -1643,14 +1771,22 @@ class mainHandler(baseHandler):
                 appinfo={'app':app, 'app_des':app_des, 'c_time':c_time, 'c_user':c_user}
                 if appinfo not in newinfo:
                     newinfo.append(appinfo)
-            elif type == "groupdetails":
+            elif type in ["groupdetails", 'serverprivilegedetails']:
+                id=i.get('id')
                 group_id=i.get('group_id')
                 group_des=i.get('group_des')
                 modal=i.get('modal')
                 remark=i.get('remark')
-                groupinfo={'group_id':group_id, 'group_des':group_des, 'modal':modal, 'remark':remark, 'c_time':c_time, 'c_user':c_user}
-                if groupinfo not in newinfo:
+                role=comm_lib.json_to_obj(i.get('role'))
+                groupinfo={}
+                if type == 'groupdetails':
+                    groupinfo={'group_id':group_id, 'group_des':group_des, 'modal':modal, 'remark':remark, 'c_time':c_time, 'c_user':c_user}
+                elif type == 'serverprivilegedetails' and role:
+                    groupinfo={'role':role, 'c_time':c_time, 'c_user':c_user, 'id':id}
+
+                if groupinfo not in newinfo and groupinfo:
                     newinfo.append(groupinfo)
+                
             elif type == "serverdetails":
                 group_id=i.get('group_id')
                 member=i.get('member')
@@ -1685,9 +1821,13 @@ class mainHandler(baseHandler):
                 return self.write(json.dumps(
                     self.get_pagination_data(newinfo, [{'app':'id'}, {'app_des':'描述'}, {'c_time':'操作时间'}, {'c_user':'操作用户'}])
                     , ensure_ascii=False))
-        elif type == "groupdetails":
+        elif type in ["groupdetails", 'serverprivilegedetails']:
             if gettype == 'taskcreate':
                 return self.write(json.dumps(newinfo, ensure_ascii=False))
+            elif type == 'serverprivilegedetails':
+                return self.write(json.dumps(
+                    self.get_pagination_data(newinfo, [{'id':'id'}, {'role':'规则'}, {'c_time':'操作时间'}, {'c_user':'操作用户'}])
+                    , ensure_ascii=False))
             else:
                 return self.write(json.dumps(
                     self.get_pagination_data(newinfo, [{'modal':'模式'}, {'remark':'备注'}, {'group_id':'id'}, {'group_des':'描述'}, {'c_time':'操作时间'}, {'c_user':'操作用户'}])
@@ -1837,6 +1977,19 @@ class mainHandler(baseHandler):
                                             {'execute_time':'执行时间'}, {'status':'状态'},
                                             {'c_time':'创建时间'}, {'c_user':'操作用户'}])
     
+    def commit_dialog_info_serverprivilege(self):
+        '''
+        self-privilege::主机组权限配置提交::主机管理-权限配置-权限配置按钮-提交
+        '''
+        id=self.args.get('id')
+        name=self.args.get('name')
+        data=self.args.get('data')
+        if not id:
+            return self.write(get_ret(-1, '参数错误, 不完整', status='err'))
+        if not user_table.update_server_privilege(self.args['curruser'], privilege=json.dumps(data), id=id):
+            return self.write(get_ret(-2, '提交失败', status='err'))
+        return self.write(get_ret(0, '配置成功', status='info'))
+        
     def commit_dialog_info_user(self):
         '''
         self-privilege::用户组变更提交信息::权限管理-用户组管理-用户管理-组变更-提交
@@ -1881,6 +2034,20 @@ class mainHandler(baseHandler):
                     self.args['curruser'], type="group_change")
         return self.write(get_ret(0, user + '组变更成功', status='info'))
     
+    def get_dialog_info_serverprivilege(self):
+        '''
+        self-privilege::主机组权限配置::主机管理-权限配置-权限配置按钮
+        '''
+        prilist=['download', 'update', 'execute']
+        id=self.args.get('id')
+        if not id :
+            return self.write(get_ret(-1, '参数错误', status='err'))
+        d=user_table.get_server_privilege(id=id)
+        privilege=comm_lib.json_to_obj(d[0].get('privilege'))
+        if not privilege:
+            privilege=[]
+        return self.write(json.dumps({'leftdata':privilege, 'rightdata':prilist}, ensure_ascii=False))
+        
     def get_dialog_info_group(self):
         '''
         self-privilege::用户组变更获取用户信息::权限管理-用户组管理-组管理-成员变更
@@ -2380,6 +2547,8 @@ class mainHandler(baseHandler):
                 return self.write(get_ret(-3, '你不能删除admin用户', status='err'))
             if not user_table.delete_user_info(name) or not user_table.delete_privilege_member(name, self.args['curruser']):
                 ret=False
+        elif dtype == 'serverprivilege':
+            ret=user_table.del_server_privilege(id=id)
         elif dtype == 'taskhistory':
             ret=user_table.task_status_update('status', self.args['curruser'], status='done', task_name=name)
         elif dtype == 'collecttemplatehistory':
@@ -2411,6 +2580,15 @@ class mainHandler(baseHandler):
             return self.write(get_ret(-2, err, status='err'))
         return self.write(get_ret(0, success, status='info'))   
          
+    def delete_serverprivilege_info(self):
+        '''
+        self-privilege::删除主机组权限规则::主机管理-权限配置-删除
+        '''
+        self.args['success']='删除规则成功'
+        self.args['err']='删除规则失败'
+        self.args['dtype']='serverprivilege'
+        return self.do_delete_info()
+        
     def delete_taskhistory_info(self):
         '''
         self-privilege::修改任务记录为完成状态::任务管理-任务记录-确认完成
@@ -3467,6 +3645,59 @@ class mainHandler(baseHandler):
         
         return self.write('downloadfile'+os.sep+"template.csv")
         
+    def do_server_privilege(self):
+        dotype=self.args.get('dotype')
+        id=self.args.get('id')
+        ip=self.args.get('ip')
+        save_file=self.args.get('save_file')
+        file=self.args.get('file')
+        filelist=user_table.get_server_privilege(id=id)
+        filelist=comm_lib.json_to_obj(filelist[0].get('filelist'))
+
+        if not all([id, ip, file]) or (not save_file and dotype in ['file_upload']) or file not in filelist:
+            return self.write(get_ret(-1, '参数错误 ', status='err'))
+
+        if dotype == 'file_upload':
+            save_file=curr_path+os.sep+save_file
+            if not os.path.exists(save_file):
+                return self.write(get_ret(-2, '获取文件失败 ', status='err'))
+            request={}
+            request.update({
+                'request': 'serverprivilege_file_update', 
+                'id': id, 
+                'ip': ip, 
+                'save_file': save_file, 
+                'file': file
+            })
+
+        elif dotype == 'file_execute':
+            request={}
+            request.update({
+                'request': 'serverprivilege_file_execute', 
+                'id': id, 
+                'ip': ip, 
+                'file': file
+            })
+            
+        ret=request_twisted(request)
+        if ret == 0:
+            return self.write(get_ret(ret, '', status='info'))
+        else:
+            return self.write(get_ret(ret, ret, status='err'))   
+    def serverprivilege_file_execute(self):
+        '''
+        self-privilege::服务器权限文件执行::主机管理-权限信息-服务器操作-执行-确定
+        '''
+        self.args['dotype']='file_execute'
+        return self.do_server_privilege()
+        
+    def serverprivilege_file_upload(self):
+        '''
+        self-privilege::服务器权限文件更新::主机管理-权限信息-服务器操作-更新-提交
+        '''
+        self.args['dotype']='file_upload'
+        return self.do_server_privilege()
+        
     def task_file_upload(self):
         '''
         self-privilege::自定义任务文件上传/更新::任务管理-自定义任务-上传/更新-提交
@@ -3581,11 +3812,25 @@ class mainHandler(baseHandler):
         '''
         return self.write(json.dumps(self.get_dropmenu_for_semantic(self.assets_templeat_keys), ensure_ascii=False))
         
+    def serverprivilegefile_check(self):
+        '''
+        self-privilege::服务器权限文件下载检查::主机管理-权限信息-服务器操作-下载
+        '''
+        self.args['name']='serverprivilegefilecheck'
+        self.args['err']='下载失败'
+        return self.file_download()
+        
     def file_download(self):
         name=self.args.get('name')
+        id=self.args.get('id')
         err=self.args.get('err')
-        data=self.get_asset_search_info()
+        ip=self.args.get('ip')
+        filedownpath=self.args.get('downloadfile')
+        file=self.args.get('file')
         
+        if name in ['tatistics', 'assetscvs', 'history']:
+            data=self.get_asset_search_info()
+            
         if name == 'tatistics':
             data=self.assets_tatistics(data)
             export_key=self.asset_tatistics_export_key
@@ -3594,9 +3839,34 @@ class mainHandler(baseHandler):
             filename=self.args.get('filename')
             task_id=self.args.get('task_id')
             load_path="task/%s/%s" % (task_id, filename)
+            
         elif name == 'assetscvs':
             load_path="file/tornado/download/assets/assets.csv"
             export_key=self.asset_key
+            
+        elif name == 'serverprivilegelist':
+            getret=True
+            filelist=user_table.get_server_privilege(id=id)
+            if not filelist:
+                getret=False
+            filelist=comm_lib.json_to_obj(filelist[0].get('filelist'))
+            if not all([ip, file]) or file not in filelist:
+                return self.write(get_ret(-1, '参数错误', status='err'))
+
+            request={}
+            request.update({
+                'request': 'download_file',
+                'ip': ip,
+                'file': file
+            })
+            filedownpath=request_twisted(request)
+            load_path=filedownpath
+            
+        elif name == 'serverprivilegefilecheck':
+            load_path=re.sub(r'downloadfile/', '', filedownpath)
+            if not os.path.exists(load_path):
+                return self.write(get_ret(-2, '文件未下载完成, 请从试!', status='warn'))
+            
         elif name == 'history':
             load_path="file/tornado/download/assets/assetshistorychange.csv"
             export_key=self.asset_history_change_key
@@ -3646,7 +3916,7 @@ class mainHandler(baseHandler):
         self-privilege::文件上传::文件上传/资产导入/任务文件上传/集成工具文件上传
         '''
         #上传信息从 self.request.files获取，前端form设置method="post" enctype="multipart/form-data"，input设置type="file" name="file"，还有注意ajax请求的设置
-        repe_ip=''
+
         fileinfo=self.request.files['file'][0]
         if self.args.get("assetupload"):
             save_file=curr_path+"/file/tornado/upload/"+fileinfo['filename'].split(os.sep)[-1]
@@ -3674,6 +3944,8 @@ class mainHandler(baseHandler):
                 return self.write(get_ret(-1, '上传失败,获取task_id失败', status='err'))
             save_file=curr_path+"/task/%s/%s" % (task_id, fileinfo['filename'].split(os.sep)[-1])
             
+        elif self.args.get("serverprivilegelist"):
+            save_file=curr_path+"/file/tornado/upload/serverprivilegelist/"+fileinfo['filename'].split(os.sep)[-1]
         elif self.args.get("initoolsmanager"):
             save_file=curr_path+"/file/tornado/upload/initools/"+fileinfo['filename'].split(os.sep)[-1]
 
@@ -3728,7 +4000,8 @@ class mainHandler(baseHandler):
                         #没有权限执行当前函数
                         return self.write(get_ret(-98, '你没有当前请求权限', status='err'))
                     self.args['grouplist']=grouplist     
-                    self.args['groupdatainfo']=groupdatainfo     
+                    self.args['groupdatainfo']=groupdatainfo
+                                       
                     apply(getattr(self, self.method))
                 except:
                     log.warn('lineno:' + str(sys._getframe().f_lineno)+": "+str(sys.exc_info()))

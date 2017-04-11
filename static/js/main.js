@@ -360,7 +360,7 @@ mainmodule.controller('mainctrl', function($scope, commservice, $compile){
     $scope.removaldata={}
     $scope.breadcrumblist={};
     $scope.servergroupevent=function(dom){};
-    $scope.get_accordion_content=function(data, dom){
+    $scope.get_accordion_content=function(data, dom, des){
         if(!dom.next().is('div.content')){
             dom.after('<div class="content"></div>')
             if(data.length!=0){
@@ -372,7 +372,12 @@ mainmodule.controller('mainctrl', function($scope, commservice, $compile){
         for(i in data){
             for(k in data[i]){
                 if(dom.next().find('div.secondary.menu a[name="'+k+'"]').length==0){
-                    dom.next().find('div.secondary.menu').append('<a name="'+k+'" id="server" class="item bread">'+data[i][k]+'</a>')
+                    if(!des){
+                        var st=''
+                    }else{
+                        var st='stype="'+des+'"'
+                    }
+                    dom.next().find('div.secondary.menu').append('<a name="'+k+'" '+st+' id="server" class="item bread">'+data[i][k]+'</a>')
                 }
             }
         }
@@ -771,6 +776,8 @@ mainmodule.directive('localsearch',function(){
                         var selector='div.item[keyname="'+value+'"]'
                         keyselector='div.item'
                         ttm=tdm.find(selector)
+                    }else if(id=="serverprivilege"){
+                        var selector="td.privilege:contains("+value+")"
                     }else if(id=="collecttemplate"){
                         var selector="td.template_id:contains("+value+"),td.des:contains("+value+")"
                     }
@@ -811,7 +818,7 @@ mainmodule.directive('repeatdataupdate',function(){
             var idl=id.split('.')
             var url="get_ngrepeat_data_"+idl[idl.length-1]
             var dt={}
-            if(name=="servergroup"||name=="appdetails"||name=="groupdetails"||name=="serverdetails"){
+            if(name=="servergroup"||name=="appdetails"||name=="groupdetails"||name=="serverdetails"||name=="serverprivilegedetails"){
                 scope.list=[]
 
                 if(idd=="taskservershistory"){
@@ -821,6 +828,8 @@ mainmodule.directive('repeatdataupdate',function(){
                     if(scope.$parent.taskserverip){
                         dt['ip']=scope.$parent.taskserverip
                     }
+                }else if(name=="serverprivilegedetails"){
+                    url='get_ngrepeat_data_serverprivilegedetails'
                 }else{
                     url='get_ngrepeat_data_'+ name
                 }
@@ -830,10 +839,10 @@ mainmodule.directive('repeatdataupdate',function(){
                 }
                 dt['line']=idl[idl.length-1].split('_and_')[0]
                 dt['product']=idl[idl.length-1].split('_and_')[1]
-                if(name=="groupdetails"||name=="serverdetails"){
+                if(name=="groupdetails"||name=="serverdetails"||name=="serverprivilegedetails"){
                     dt['app']=idl[idl.length-1].split('_and_')[2]
                 }
-                if(name=="serverdetails"){
+                if(name=="serverdetails"||name=="serverprivilegedetails"){
                     dt['group']=idl[idl.length-1].split('_and_')[3]
                 }
                 if(idd=="taskcreate"){
@@ -860,8 +869,6 @@ mainmodule.directive('repeatdataupdate',function(){
             }
 
             commservice.request_url(url, "post", dt, function(d){
-                //有时候动态compile时候无效,属于angular的bug
-                //scope.list=d
                 if(id=="privilege.inform.contactlist"){
                     scope.$parent.privilege.inform.contactlist=d
                 }else if(id=="privilege.inform.accountlist"){
@@ -900,6 +907,8 @@ mainmodule.directive('repeatdataupdate',function(){
                     scope.$parent.get_pagination_info(pdm, pageid, plen, tidd, name)
                     scope.$parent.taskcustomkey=''
 
+                }else if(name=="serverprivilegedetails"){
+                    scope.list=d['data']
                 }else if(id.match(/servermanager.servergroup.applist/)||id.match(/servermanager.servergroup.grouplist/)||id.match(/servermanager.servergroup.serverdetails/)){
                     scope.list=d['data']
                     var rightdm=angular.element('.rightdm')
@@ -998,6 +1007,8 @@ mainmodule.directive('requestbutton',function(){
                         if(d['status']=='err'){
                             commservice.alert_message(d['status'], d['code'], d['message'], true)
                             return false
+                        }else if(id=='serverprivilegelist'){
+                            commservice.alert_message(d['status'], d['code'], '请求发送成功', true)
                         }
 
                         var tasktb=element.parent().parent().parent()
@@ -1006,6 +1017,38 @@ mainmodule.directive('requestbutton',function(){
                             tasktb.find('td.status').text('running')
                             tasktb.find('td.status').css('color', scope.$parent.statelist['running'])
                             tasktb.find('.tasktimemodify,.taskrestart').addClass('disabled')
+                        }else if(url=="get_server_privilegelist"){
+                            var md=angular.element(compile(commservice.get_standard_modal('服务器权限信息['+dt['ip']+']', d))(scope.$parent))
+                            var tddd=md.find('#serverprivilegelist.dropdown')
+                            tddd.dropdown('setting', 'onChange', function(value, text, $choice){
+                                tddd.addClass('loading')
+                                var tv=tddd.dropdown('get value')
+                                var serverid=$choice.attr('serverid')
+
+                                commservice.request_url('search_server_privilege_filelist', 'post', {ip:dt['ip'], role:tv, serverid:serverid}, function(ddddd){
+                                    if(ddddd['status']=='err'){
+                                        commservice.alert_message(ddddd['status'], ddddd['code'], ddddd['message'])
+                                        return 
+                                    }
+                                    //获取文件列表
+                                    setTimeout(function(){
+                                        scope.$parent.serverprivilegefilelist=[]
+                                        scope.$parent.serverprivilegelist=[]
+                                        scope.$parent.serverprivilegeid=serverid
+                                        dt['serverid']=serverid
+                                        commservice.request_url('get_server_privilege_filelist', 'post', dt, function(ad){
+                                            scope.$parent.serverprivilegefilelist=ad['filelist']
+                                            scope.$parent.serverprivilegelist=ad['privilege']
+                                            tddd.removeClass('loading')
+                                        })
+                                    }, 3000)
+                                })
+                            })
+                            $.fn.modal.settings.allowMultiple=true
+                            md.modal('setting', 'onHide', function(){
+                                $.fn.modal.settings.allowMultiple=false
+                            })
+                            md.modal('show')
                         }else if(url=="task_cancel"){
                             tasktb.find('td.status').text('cancel')
                             tasktb.find('td.status').css('color', scope.$parent.statelist['cancel'])
@@ -1013,6 +1056,7 @@ mainmodule.directive('requestbutton',function(){
                     })
                 })
             };
+
             element.click(function(){
                 dt={}
                 tet=''
@@ -1074,6 +1118,31 @@ mainmodule.directive('requestbutton',function(){
                         }
                         scope.dorequest(url, dt, tet)
                     }, 10)
+                }else if(id=="serverprivilegelist"){
+                    var trdm=element.parent().parent()
+                    url='serverprivilege_file_execute'
+                    dt['ip']=scope.$parent.serverprivilegeipadd
+                    dt['id']=scope.$parent.serverprivilegeid
+                    dt['file']=trdm.find('td:eq(0)').text().trim()
+                    tet="确定执行 "+ dt['file']+" ?"
+                    scope.dorequest(url, dt, tet)
+                    
+                }else if(id=="hostprivilegelist"){
+                    var trdm=element.parent().parent()
+                    var iptext=trdm.find('td.member').text().trim()
+                    url='get_server_privilegelist'
+                    dt['ip']=iptext.split('&')[0]
+                    dt['line']=element.attr('line')
+                    dt['product']=element.attr('product')
+                    dt['app']=element.attr('app')
+                    dt['group']=element.attr('group')
+                    scope.$parent.serverprivilegeipadd=dt['ip']
+                    tet="确定对 "+ dt['ip']+" 进行操作 ?"
+                    if(iptext.split('&')[2] != 'yes'){
+                        commservice.alert_message('err', '造作失败', ''+dt['ip']+'模式不为yes', true)
+                        return 
+                    }
+                    scope.dorequest(url, dt, tet)
                 }
             })
             if(name=="task_single_restart"){
@@ -1883,6 +1952,8 @@ mainmodule.directive('tdlable',function(){
         restarict:'A',
         link:function(scope, element, attrs){
             var id=element.attr('id')
+            var compile=scope.$parent.compile
+            var commservice=scope.$parent.commservice
             
             attrs.$observe('class', function(){
               setTimeout(function(){
@@ -1900,7 +1971,7 @@ mainmodule.directive('tdlable',function(){
                     if(id=="servergroup"){
                         var lable='<a class="active item"><div class="ui mini '+color+' label" style="float:right">'+modal+'</div></a>'
                     }else if(id=="groupmember"){
-                        var lable='<a class="ui mini '+color+' image label" style="float:right">'+asset_app+'<div class="detail">'+modal+'</div></a>'
+                        var lable='<a class="ui mini '+color+' image label" style="float:right">'+asset_app+'<i style="display:none">&</i><div class="detail">'+modal+'</div></a>'
                     }
                     element.append('<i style="display:none">&</i>'+lable)
                 }else if(id=="fault"){
@@ -1912,6 +1983,39 @@ mainmodule.directive('tdlable',function(){
                     if(element.hasClass("status")){
                         element.after('<td class="state_des" style="color:'+cl[num]['col']+'">'+cl[num]['des']+'</td>')
                     }
+                }else if(id=="serverprivilegelist"){
+                    var pd=scope.$parent.serverprivilegelist
+                    var ht='<td class="opertion">'
+                    var ttt=''
+                    var pds={
+                        'execute': {
+                            'des': '执行',
+                            'hd': 'requestbutton',
+                            'col': 'red'
+                        },
+                        'download': {
+                            'des': '下载',
+                            'hd': 'download',
+                            'col': 'green'
+                        },
+                        'update': {
+                            'des': '更新',
+                            'hd': 'upload',
+                            'col': 'teal'
+                        }
+                    }
+
+                    for(i in pd){
+                        if(pd[i]!=""){
+                            if(!pd[i] in pds){
+                                continue
+                            }
+                            ttt+='<button id="'+id+'" class="ui small '+pds[pd[i]]['col']+' basic button" class="'+pd[i]+'"  '+pds[pd[i]]['hd']+'>'+pds[pd[i]]['des']+'</button>'
+                        }
+                    }
+                    ht+=ttt+'</td>'
+                    element.after(ht)
+                    compile(element.parent().find('td.opertion'))(scope.$parent)
                 }else if(id=="taskhistory"){
                     if(['id', 'custom_name', 'custom_type', 'task_type' , 'timestatus', 'create_time'].indexOf(cls)!=-1){
                         element.hide() 
@@ -2221,7 +2325,7 @@ mainmodule.directive('trdeletebutton',function(){
                 }
                 var d={}
                 
-                if(id=="user"||id=="group"||id=="account"||id=="key"||id=="contact"||id=="assetmanager"||id=="loginmanager"||id=="serverapp"||id=="servergroup"||id=="groupmember"||id=="taskcustom"||id=="taskcustomfile"||id=="collecttemplate"||id=="collecttemplatehistory"||id=="taskrelevancehistory"||id=="taskhistory"){
+                if(id=="user"||id=="group"||id=="account"||id=="key"||id=="contact"||id=="assetmanager"||id=="loginmanager"||id=="serverapp"||id=="servergroup"||id=="groupmember"||id=="taskcustom"||id=="taskcustomfile"||id=="collecttemplate"||id=="collecttemplatehistory"||id=="taskrelevancehistory"||id=="taskhistory"||id=="serverprivilege"){
                     if(id=="assetmanager"||id=="loginmanager"){
                         var nid='td.telecom_ip'
                     }else if(id=="servergroup"){
@@ -2229,6 +2333,8 @@ mainmodule.directive('trdeletebutton',function(){
                     }else if(id=="taskhistory"){
                         var nid='td.task_name'
                         trdm=trdm.parent()
+                    }else if(id=="serverprivilege"){
+                        var nid='td.role'
                     }else if(id=="groupmember"){
                         var nid='td.member'
                     }else if(id=="taskcustom"||id=="taskcustomfile"){
@@ -2267,6 +2373,9 @@ mainmodule.directive('trdeletebutton',function(){
                         var message='确定检测主机组  ['+name+"] 下的主机客户端状态,这可能需要一些时间 ?"
                     }else if(id=="servergroup" && type =="deploy"){
                         var message='确定对主机组  ['+name+"] 下的主机进行客户端部署操作,这可能需要一些时间 ?"
+                    }else if(id=="serverprivilege"){
+                        var message='确定删除规则  ['+name+"]?"
+                        d['id']=trdm.find('td.id').text().trim()
                     }else if(id=="taskrelevancehistory"){
                         var message='确定删除关联任务  ['+name+"]?"
                     }else if(id=="taskhistory"){
@@ -2497,31 +2606,30 @@ mainmodule.directive('opertiondialog',function(){
             element.click(function(){
                 var id=element.attr('id')
                 var fdm=element.parent().parent()
-
+                var url='get_dialog_info_'+id
+                var commiturl='commit_dialog_info_'+id
+                
                 if(id=="user"){
-                    var url='get_dialog_info_'+id
-                    var commiturl='commit_dialog_info_'+id
                     var title="组变更"
                     var child_title_left='所属组'
                     var child_title_right='组列表'
                     var name=fdm.find('td:eq(0)').text().trim()
                 }else if(id=="group"){
-                    var url='get_dialog_info_'+id
-                    var commiturl='commit_dialog_info_'+id
                     var title="成员变更"
                     var child_title_left='成员信息'
                     var child_title_right='成员列表'
                     var name=fdm.find('td:eq(0)').text().trim()
+                }else if(id=="serverprivilege"){
+                    var title="主机组权限配置"
+                    var child_title_left='权限信息'
+                    var child_title_right='权限列表'
+                    var name=fdm.find('td:eq(1)').text().trim()
                 }else if(id=="privilege"){
-                    var url='get_dialog_info_'+id
-                    var commiturl='commit_dialog_info_'+id
                     var title="权限变更"
                     var child_title_left='权限信息'
                     var child_title_right='权限列表'
                     var name=fdm.find('td:eq(0)').text().trim()
                 }else if(id=="account"){
-                    var url='get_dialog_info_'+id
-                    var commiturl='commit_dialog_info_'+id
                     var title="通知-账号管理"
                     var child_title_left='联系人成员'
                     var child_title_right='联系人列表'
@@ -2539,6 +2647,8 @@ mainmodule.directive('opertiondialog',function(){
                     }else if(type=="wechat"){
                         name=fdm.find('td.weid').text().trim()
                     }
+                }else if(id=="serverprivilege"){
+                    dt['id']=fdm.find('td.id').text().trim()
                 }
                 var d={title:title,left_title:child_title_left,right_title:child_title_right, type:id, name:name}
                 dt['name']=name
@@ -2552,7 +2662,7 @@ mainmodule.directive('opertiondialog',function(){
                     scope.$parent.dialogdata.leftcheckeddata=[]
                     md.modal('show')
                     commservice.request_url(url,"post",dt,function(d){
-                        if(id=="user"||id=="group"||id=="privilege"||id=="account"){
+                        if(id=="user"||id=="group"||id=="privilege"||id=="account"||id=="serverprivilege"){
                             scope.$parent.dialogdata.left=d['leftdata']
                             scope.$parent.dialogdata.right=d['rightdata']
                         }
@@ -2565,7 +2675,7 @@ mainmodule.directive('opertiondialog',function(){
                                             if(leftdata[i] in scope.$parent.dialogdata.left){
                                                 delete scope.$parent.dialogdata.left[leftdata[i]]
                                             }
-                                        }else if(id=="group"||id=="account"){
+                                        }else if(id=="group"||id=="account"||id=="serverprivilege"){
                                             if(scope.$parent.dialogdata.left.indexOf(leftdata[i]) != -1){
                                                 scope.$parent.dialogdata.left.splice(scope.$parent.dialogdata.left.indexOf(leftdata[i]), 1)  
                                             }
@@ -2605,13 +2715,12 @@ mainmodule.directive('opertiondialog',function(){
                                             var tv=scope.$parent.dialogdata.right[rightdata[i]]['des']
                                         }else if(rrdm.parent().is('#child')){
                                             var pname=rrdm.parent().parent().parent().parent().parent().parent().prev().find('input').attr('name')
-                                            console.log(pname)
                                             var tv=scope.$parent.dialogdata.right[pname]['childlist'][rightdata[i]]
                                         }
 
                                         scope.$parent.dialogdata.left[tk]=tv
 
-                                    }else if(id=="group"||id=="account"){
+                                    }else if(id=="group"||id=="account"||id=="serverprivilege"){
                                         scope.$parent.dialogdata.left.push(rightdata[i])
                                     }
 
@@ -2637,6 +2746,8 @@ mainmodule.directive('opertiondialog',function(){
                             d['name']=name
                             if(id=="account"){
                                 d['type']=type
+                            }else if(id=="serverprivilege"){
+                                d['id']=dt['id']
                             }
                             commservice.request_url(
                                 commiturl, 
@@ -3649,6 +3760,16 @@ mainmodule.directive('addinfo',function(){
                             'fieldattr':'style="display:none"'
                         },
                     }
+                }else if(id=="serverprivilege"){
+                    var title='主机组服务器规则添加'
+                    scope.role=""
+                    var dt={
+                        'role':{
+                            'name':'主机组服务器规则',
+                            'des':'填写服务器文件路径(非目录), 用于权限开放, 支持正则方式(基础/扩展/perl), 如/tmp/*/test; ',
+                            'other':'ng-model="role"'
+                        }
+                    }  
                 }else if(id=="fault"){
                     var title='故障处理'
                     scope.fault={}
@@ -3922,6 +4043,13 @@ mainmodule.directive('addinfo',function(){
                                 check=true
                             }
                         }
+                    }else if(id=="serverprivilege"){
+                        d['name']=scope.role
+                        d['line']=element.attr('line')
+                        d['product']=element.attr('product')
+                        d['app']=element.attr('app')
+                        d['group']=element.attr('group')
+                        check=scope.$parent.data_check(d)
                     }else if(id=="fault"){
                         d['id']=scope.fault.id
                         d['status']=md.find('select').val()
@@ -4005,6 +4133,8 @@ mainmodule.directive('addinfo',function(){
                             uphtm='<div name="appdetails" list="servermanager.servergroup.applist.'+d['line']+'_and_'+d['product']+'" repeatdataupdate></div> <repeatdataupdate name="servergroup" list="servermanager.servergroup.appgrouplist.'+d['line']+'_and_'+d['product']+'" ></repeatdataupdate>'
                         }else if(id=="collecttemplate"){
                             uphtm='<tbody list="taskmanager.collecttemplate.collecttemplatelist" repeatdataupdate></tbody>'
+                        }else if(id=="serverprivilege"){
+                            uphtm='<tbody name="serverprivilegedetails" list="servermanager.serverprivilege.serverprivilegedetails.'+d['line']+'_and_'+d['product']+'_and_'+d['app']+'_and_'+d['group']+'" repeatdataupdate>'
                         }else if(id=="taskcustom"){
                             uphtm='<tbody name="taskcustom" list="taskmanager.taskcustom.taskinfolist.taskinfo" repeatdataupdate></tbody>'
                             
@@ -4169,6 +4299,16 @@ mainmodule.directive('upload',function(){
                     var value=id
                     var url="assets_import"
              
+                }else if(id=="serverprivilegelist"){
+                    var title='服务器文件更新'
+                    var bar_des='上传进度'
+                    var form_head_des='注意:'
+                    var form_head_tail='选择需要上传的可执行文件'
+                    var err_message='上传失败'
+                    var key=id
+                    var trdm=element.parent().parent()
+                    var url="serverprivilege_file_upload"
+                    
                 }else if(id=="taskcustom"){
                     var title='任务文件上传'
                     var bar_des='上传进度'
@@ -4229,6 +4369,9 @@ mainmodule.directive('upload',function(){
                 }
 
                 var md=angular.element(compile(commservice.get_upload(title, bar_des, form_head_des, form_head_tail))(scope.$parent))
+                if(id=="serverprivilegelist"){
+                    md.addClass('large')
+                }
                 //md.modal('show').find('#progressbar').progress('increment')
                 md.modal('show').find('#progressbar')
                 var file=''
@@ -4287,11 +4430,21 @@ mainmodule.directive('upload',function(){
                             data['save_file']=save_file
                             data['id']=id
                             data['data']=value
+                        }else if(id=="serverprivilegelist"){
+                            var data={
+                                'id':scope.$parent.serverprivilegeid ,
+                                'ip':scope.$parent.serverprivilegeipadd ,
+                                'save_file':save_file,
+                                'file':trdm.find('td:eq(0)').text().trim()
+                            }
                         }
+
                         commservice.request_url(url, 'post', data, function(d){
-                            commservice.alert_message(d['code'], d['status'], d['message'])
-                            if(d['code']=="err"){
+                            if(d['status']=="err"){
+                                commservice.alert_message(d['code'], d['status'], d['message'])
                                 return  false
+                            }else if(id=="serverprivilegelist"){
+                                commservice.alert_message(d['code'], d['status'], '更新成功', true)
                             }
                             if(id=="loginuser"){
                                 trdm.find('td.user').text(filename[filename.length-1])
@@ -4670,6 +4823,7 @@ mainmodule.directive('download',function(){
         scope:{},
         restarict:'A',
         link:function(scope, element, attrs){
+            var commservice=scope.$parent.commservice
             element.click(function(){
                 var id=element.attr('id')
                 url=id+"_download"
@@ -4686,6 +4840,12 @@ mainmodule.directive('download',function(){
                     }
                     data['iplist']=dm.find('textarea.iplist').val().trim().replace(/\n/g, ',')
                     
+                }else if(id=="serverprivilegelist"){
+                    var trdm=element.parent().parent()
+                    data['id']=scope.$parent.serverprivilegeid
+                    data['ip']=scope.$parent.serverprivilegeipadd
+                    data['file']=trdm.find('td:eq(0)').text().trim()
+                    
                 }else if(id=="taskcustom"){
                     var trdm=element.parent().parent()
                     data['task_id']=trdm.find('.task_id').text().trim()
@@ -4698,16 +4858,35 @@ mainmodule.directive('download',function(){
                     
                 }
                 element.addClass('loading')
-                scope.$parent.commservice.request_url(url, 'post', data, function(d){
+                commservice.request_url(url, 'post', data, function(d){
                     element.removeClass('loading')
                     if(d['status']=="err"){
-                        scope.$parent.commservice.alert_message(d['code'], d['status'], d['message'])
+                        commservice.alert_message(d['code'], d['status'], d['message'])
                         return false
                     }
                     if(d==""){
                         return false
                     }
-                    scope.$parent.commservice.page_jump(d)
+                    if(id=="serverprivilegelist"){
+                        var ck=0
+                        var a=window.setInterval(function(){
+                            data['downloadfile']=d
+                            commservice.request_url('serverprivilegefile_check', 'post', data, function(dd){
+                                if(dd['code'] == -2){
+                                    ck+=1
+                                }else{
+                                    window.clearInterval(a)
+                                    return commservice.page_jump(d)
+                                }
+                                if(ck >= 30){
+                                    window.clearInterval(a)
+                                    return commservice.alert_message('err', '超时', '文件下载超时', true)
+                                }
+                            })
+                        }, 3000)
+                    }else{
+                        commservice.page_jump(d)
+                    }
                 })
             })
         }
@@ -5050,6 +5229,7 @@ mainmodule.directive('domafterhandle',function(){
         restrict:'A',
         link:function(scope, element, attrs){
             var id=element.attr('id')
+            var stype=element.attr('stype')
             attrs.$observe('key', function(){
                 if(id=="servergroup"||id=="taskrelevance"){
                     var pdm=element.parent()
@@ -5060,7 +5240,7 @@ mainmodule.directive('domafterhandle',function(){
                         element.after('<a  name="'+scope.$parent.breadcrumblist[scope.key]['key']+'" id="'+scope.key+'" class="active section">'+scope.$parent.breadcrumblist[scope.key]['des']+'</div>')
                     }
                 }else if(id=="app"){
-                    scope.$parent.get_accordion_content(scope.key['group'], element)
+                    scope.$parent.get_accordion_content(scope.key['group'], element, stype)
                 }
             })
         }
@@ -5452,8 +5632,9 @@ mainmodule.directive('servergroup',function(){
                     var name=dm.attr('name')
                     var des=dm.text().trim()
                     var pdm=dm.parent().parent()
+                    var stype=dm.attr('stype')
                     var dt={}
-                        
+
                     if(id=="line"){
                         leftdm.find('div#line').css('color','')
                         rightdm.html('')
@@ -5488,7 +5669,12 @@ mainmodule.directive('servergroup',function(){
                         dt['app']=name
                         
                     }else if(id=="server"){
-                        var url='get_member_servergroup'
+                        if(stype=='hostprivilege'){
+                            var url='get_server_privilege_config'
+                        }else{
+                            var url='get_member_servergroup'
+                        }
+                        
                         leftdm.find('a#server').css('color','')
                         if(!('product' in scope.$parent.breadcrumblist)){
                             var dddm=pdm.parent().parent()
@@ -5512,6 +5698,12 @@ mainmodule.directive('servergroup',function(){
                     scope.$parent.breadcrumblist[id]={key:name, des:des}
                     scope.$parent.$apply(scope.$parent.breadcrumblist)
                     if(id!="line"){
+                        if(stype=='hostprivilege'&&id!='server'){
+                            return
+                        }else if(stype=='hostprivilegelist'){
+                            dt['stype']=stype
+                        }
+                        
                         commservice.request_url(url, 'post', dt, function(d){
                             if(d['status']=="err"){
                                 return commservice.alert_message(d['status'], d['code'], d['message'])

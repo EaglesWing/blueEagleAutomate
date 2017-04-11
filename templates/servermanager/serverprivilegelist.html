@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <div class="ui segment" style="padding:5px;min-height:500px">
+        <div class="ui two column padded grid attached segment" style="padding:5px">
+            <div id="serverprivilegelist" class="ui fluid search selection dropdown" line="${line}" product="${product}" app="${app}" group="${group}" dropdown>
+                <input type="hidden" name="" value="">
+                <i class="dropdown icon"></i>
+                <input class="search">
+                <div class="default text">选择规则过滤文件...</div>
+                <div class="menu">
+                    <?py if _context.get('rolelist'):?>
+                        <?py for k,v in rolelist.iteritems():?>
+                            <div class="item" serverid="${k}">${v}</div>
+                        <?py #endfor ?>
+                    <?py #endif ?>
+                </div>
+            </div>
+        </div>
+        <table class="ui fourten column sortable celled  table" style="overflow:auto">
+            <thead>
+                <tr>
+                    <th>路径</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody name="serverprivilegelistdetails">
+                <tr id="serverprivilegelist">
+                    <td id="serverprivilegelist" class="{{x}}" ng-repeat="x in serverprivilegefilelist" tdlable>{{x}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</html>

@@ -411,18 +411,13 @@ class server_protocol(Protocol):
         else:
             log.err('twisted get scoket data err.')
             
-        data=data['data']
-        if data=='0':
-            return
-            
         try:
-            data=json.loads(data)
+            data=json.loads(data['data'])
         except:
             return
             
-        if not data:
+        if not data or str(data.get('data')) == '0':
             return
-
         data.update({'socket':self, 'selfip':self.ip})
         if self.ip == tornado_ip:
             data.update({'sktype':'tornado'})
@@ -551,6 +546,84 @@ class server_factory(Factory, clien):
         if data.get('logdone') == 'yes':
             return skt.transport.loseConnection()
 
+    def download_file_response(self, data):
+        savefile=data.get('savefile')
+        filedata=data.get('filedata')
+        return comm_lib.write_file(savefile, filedata)
+        
+    def find_file_path_response(self, data):
+        filelist=json.dumps(data.get('filelist'), ensure_ascii=False)
+        id=data.get('serverid')
+        c_user=data.get('c_user')
+        return user_table.update_server_privilege(c_user, filelist=filelist, id=id)
+        
+    def serverprivilege_file_execute(self, data):
+        data.update({'requesttype': 'file_execute'})
+        return self.tornado_request_client(data)
+        
+    def serverprivilege_file_update(self, data):
+        data.update({'requesttype': 'file_update'})
+        return self.tornado_request_client(data)
+        
+    def tornado_request_client(self, data):
+        ip=data.get('ip')
+        file=data.get('file')
+        role=data.get('role')
+        serverid=data.get('serverid')
+        c_user=data.get('c_user')
+        requesttype=data.get('requesttype')
+        id=data.get('id')
+        save_file=data.get('save_file')
+        file=data.get('file')
+        skt=data.get('socket').transport.getHandle()
+        
+        if self.conn_check(ip):
+            ret=0
+        else:
+            ret=-1
+            
+        if requesttype == 'download_file':
+            savefile='file/client/'+str(ip)+os.sep+re.sub(r'/+', '_', file)
+            if os.path.exists(savefile):
+                comm_lib.backup_file(savefile)
+            cmd={
+                'type':'download_file',
+                'savefile':savefile,
+                'file':file
+            }
+            if ret != -1:
+                ret=savefile
+                
+        elif requesttype == 'file_execute':
+            cmd={
+                'type':'file_execute',
+                'file':file
+            }
+        elif requesttype == 'file_update':
+            cmd=save_file
+            
+        elif requesttype == 'search_filelist':
+            cmd={
+                'type':'find_file_path',
+                'serverid':serverid,
+                'c_user':c_user,
+                'role':role
+            }
+
+        self.response_tornado('', skt, ret)
+        if requesttype == 'file_update':
+            return self.send_data(ip, cmd, dest_path=file)
+        else:
+            return self.send_data(ip, cmd)
+        
+    def download_file(self, data):
+        data.update({'requesttype': 'download_file'})
+        return self.tornado_request_client(data)
+
+    def search_server_privilege_filelist(self, data):
+        data.update({'requesttype': 'search_filelist'})
+        return self.tornado_request_client(data)
+        
     def show_task_log(self, data):
         return self.do_task_log(data)
         
@@ -1248,8 +1321,15 @@ class server_factory(Factory, clien):
             
         h_num=self.status_level.index(historystatus)
         t_num=self.status_level.index(status)
-        if t_num > h_num or (status in self.task_done_status and self.task_done_status.index(status) > self.task_done_status.index(historystatus)):
-            historystatus=status
+        if t_num > h_num or status in self.task_done_status:
+            md=False
+            if status in self.task_done_status and historystatus in self.task_done_status:
+               if self.task_done_status.index(status) > self.task_done_status.index(historystatus):
+                  md=True
+            else:
+               md=True      
+            if md:
+               historystatus=status
 
         for i in taskinfodata:
             for k,v in i.items():
@@ -1526,10 +1606,12 @@ class server_factory(Factory, clien):
             'dotask_ip':dotask_ip
         })
         #修改任务ip状态
-        if sendfile_iplist:
-            { servers[ip].update({'status':'sending'}) for ip in sendfile_iplist }
-            self.task_status_update(task, 'sending')
-            self.send_data_to_iplist(sendfile_iplist, taskfile, dest_path=dest_path)
+        if sendfile_iplist  or dotask_ip:
+            s='sending'
+            { servers[ip].update({'status':s}) for ip in sendfile_iplist }
+            self.task_status_update(task, s)
+            if sendfile_iplist:
+               self.send_data_to_iplist(sendfile_iplist, taskfile, dest_path=dest_path)
         #修改状态为sended, 当dotask_ip不在sendfile_iplist里时
         { servers[ip].update({'status':'sended'}) for ip in dotask_ip if ip not in sendfile_iplist }
         #不在这调用,检查里执行 task_exec_status_check
@@ -1727,7 +1809,7 @@ class server_factory(Factory, clien):
                         'task_name':taskname
                     }
                      
-                    if tstatus == 'sending' and sendfile_iplist:
+                    if tstatus == 'sending' :
                         ret=False
                         #发送文件md5给client检查文件是否接收完成
                         md5=comm_lib.getmd5(file_source)

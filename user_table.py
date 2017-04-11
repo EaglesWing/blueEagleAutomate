@@ -97,6 +97,8 @@ class user_table(object):
         self.t_task_servers_history='t_task_servers_history'
         #任务主机/任务标记执行完成记录表
         self.t_task_done_history='t_task_done_history'
+        #主机服务器权限开放信息
+        self.t_serverprivilege_info='t_serverprivilege_info'
         #故障处理
         self.t_fault_handle='t_fault_handle'
 
@@ -648,10 +650,10 @@ class user_table(object):
     def get_servergroup_info(self, **kws):
         type=kws.get('type')
         sql_str=''
-
+        
         if type == 'serverapp':
             table=self.t_serverapp_info
-        elif type == 'servergroup':
+        elif type in ['servergroup', 'privileges']:
             table=self.t_servergroup_info
         elif type == 'serverhost':
             table=self.t_serverhost_info
@@ -1241,7 +1243,7 @@ class user_table(object):
         self.add_group(group, des, c_user)
         self.add_group_to(group)
         return True
-        
+
     @sql_result()
     def add_group_to(self, group):
         sql='insert into %s (name) values ("%s");' % (self.t_privilege_allocate, group)
@@ -1281,3 +1283,43 @@ class user_table(object):
     def fault_add(self, ip, name, zone=None, des=None):
         sql='''insert into %s (ip, name, zone_name, status, h_time, faultdes) values('%s', '%s', '%s', '%s', now(), '%s') '''   %   (self.t_fault_handle, ip, name, zone, '1', des) 
         return [self.db,sql]
+         
+    @sql_result('query')
+    def get_server_privilege(self, **kws):
+        where_str=self.get_sql_with_keys(kws)
+        sql=''' select * from %s where %s ''' % (self.t_serverprivilege_info, where_str)
+        return [self.db,sql]
+        
+    @sql_result()
+    def add_server_privilege(self, c_user, **kws):
+        key, value=self.get_insert_key_value(kws)
+        sql='''insert into %s (%s, c_time, c_user) values (%s, now(), '%s') '''  % (self.t_serverprivilege_info, key, value, c_user)
+        return  [self.db, sql]
+        
+    @sql_result()
+    def del_server_privilege(self, **kws):
+        where_str=self.get_sql_with_keys(kws)
+        sql='''delete from %s where %s ''' % (self.t_serverprivilege_info, where_str)
+        return  [self.db, sql]
+        
+    @sql_result()
+    def update_server_privilege(self, c_user, **kws):
+        td={}
+        td['privilege']=kws.get('privilege')
+        td['filelist']=kws.get('filelist')
+
+        d={}
+        d["id"]=kws.get('id')
+        d["line"]=kws.get('line')
+        d["product"]=kws.get('product')
+        d["app"]=kws.get('app')
+        d["group_id"]=kws.get('group')
+        
+        upkey=self.get_update_key_value(td, result=True)
+        if d.get('id'):
+            where_str=''' `id`='%s' ''' % d.get('id')
+        else:
+            where_str=self.get_sql_with_keys(d)
+        sql='''update %s set %s, c_user='%s', c_time=now() where  %s '''  % (self.t_serverprivilege_info, upkey, c_user, where_str)
+        return  [self.db, sql]
+    

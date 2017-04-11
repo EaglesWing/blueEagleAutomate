@@ -168,6 +168,51 @@ def get_task_log(request):
                 if  request.get('logdone') == 'yes':
                     return
                 
+def file_execute(data):
+    file=data.get('file')
+    if os.path.exists(file):
+        cmd='''chmod a+x %s;%s''' % (file, file)
+        ret, detail=commands.getstatusoutput(cmd)
+        return log.info(detail)
+        
+def download_file(data):
+    file=data.get('file')
+    filedata=''
+    if not os.path.exists(file):
+        filedata=-1
+    with open(file, 'rb') as f:
+        filedata=f.read()
+    data.update({
+        'request':'download_file_response',
+        'filedata':filedata
+    })
+    return comm_lib.send_socket_data(sk.s, data)
+        
+def find_file_path(data):
+    role=data.get('role')
+    if not role:
+        return False
+    roletmp=''
+    for i in role.split(os.sep):
+        if i:
+            if not re.match(r'.*[a-zA-Z0-9-_]+.*', i):
+                break
+
+            roletmp+=os.sep+str(i)
+
+    cmd=''' getfacl %s -R 2>/dev/null|grep -P "%s"|awk '{a=a"/"$NF"::::::"}END{print a}' ''' % (roletmp, re.sub('^/+', '', role))
+    ret, detail=commands.getstatusoutput(cmd)
+    if ret >> 8 !=0:
+        filelist=''
+    else:
+        filelist=detail
+
+    data.update({
+        'request':'find_file_path_response',
+        'filelist':filelist.split('::::::')
+    })
+    return comm_lib.send_socket_data(sk.s, data)
+        
 def client_handle(data):
     type=data.get('method')
     client_sh=curr_path+os.sep+'sh'+os.sep+"client.sh"
@@ -201,6 +246,12 @@ def do_task(request):
         return post_propre_file(request['filename'])
     elif request.get('type')=="obj_execute" and request.get('object') and request.get('task_name'):
         return execute_task_cmd(request)
+    elif request.get('type')=="file_execute":
+        return file_execute(request)
+    elif request.get('type')=="find_file_path":
+        return find_file_path(request)
+    elif request.get('type')=="download_file":
+        return download_file(request)
     elif request.get('type')=="client_handle":
         return client_handle(request)
     elif request.get('type')=="get_task_log" and request.get('task_name'):

@@ -34,6 +34,10 @@ def filecopy(source, dest):
     makedirs(dest)
     shutil.copy(source, dest)
 
+def read_file(file_path):
+    with open(file_path) as f:
+        return f.read()
+        
 def write_file(file_path, file_obj, overwrite=False):
     makedirs(file_path)
     if file_obj:
