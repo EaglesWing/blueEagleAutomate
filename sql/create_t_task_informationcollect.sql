@@ -14,3 +14,4 @@ create table if not exists {{table_name}} (
     /*操作人*/
     c_user varchar(35)   null
 ) character set utf8;
+replace into {{table_name}} (`c_user`,`remark`,`des`,`template_id`, c_time) values('admin' ,'记录平台接口和浏览器请求信息' ,'平台审计' ,'platform_history' , now()) 

@@ -327,7 +327,19 @@ class mainHandler(baseHandler):
             #若arguments中没数据则使用body获取一次
             if self.request.body:
                 self.args=json.loads(self.request.body)
+        
         self.method=self.request.path.split(os.sep)[-1].replace('.',"_").replace('-', '_')
+
+        if  self.args.get('requesttype') != 'platform_history':
+            taskque.put({
+                'type': 'add_history',
+                'clsname': self.__class__.__name__,
+                'remote_ip': self.request.remote_ip,
+                'requestdata': { k:v for k,v in self.args.iteritems() },
+                'verify_key': '',
+                'c_user': self.get_current_user(),
+                'method': self.method
+            })
         self.args.update({'filepath':curr_path+self.request.path})
         self.args.update({'curruser':self.get_current_user()})
         self.assets_templeat_key='assets_templeat_key'
@@ -2556,6 +2568,8 @@ class mainHandler(baseHandler):
         elif dtype == 'taskrelevancehistory':
             ret=user_table.delete_task_relevance_info(relevance_id=name) 
         elif dtype == 'collecttemplate':
+            if name == 'platform_history':
+                return self.write(get_ret(-3, '不能删除platform_history', status='err'))
             ret=user_table.delete_collecttemplate_info(name)  
         elif dtype == 'taskcustom':
             if type == "file":
@@ -4052,8 +4066,20 @@ class interfaceHandler(mainHandler):
             #若arguments中没数据则使用body获取一次
             if self.request.body:
                 self.args=json.loads(self.request.body)
-
+                
+        db_verify_key=user_table.get_verify_key_info(name='verify_key')[0]['value']
         self.method=self.request.path.split(os.sep)[-1].replace('.',"_").replace('-', '_') 
+
+        if  self.args.get('requesttype') != 'platform_history':
+            taskque.put({
+                'type': 'add_history',
+                'clsname': self.__class__.__name__,
+                'remote_ip': self.request.remote_ip,
+                'verify_key': db_verify_key,
+                'requestdata': { k:v for k,v in self.args.iteritems() },
+                'c_user': '',
+                'method': self.method
+            })
         self.args.update({'filepath':curr_path+self.request.path})
         self.args.update({'curruser':self.get_current_user()})
         self.line=self.args.get('line')
@@ -4068,7 +4094,7 @@ class interfaceHandler(mainHandler):
         self.c_user=self.args.get('c_user')
         self.iplist=self.args.get('iplist')
         verify_key=self.args.get('verify_key', None)
-        db_verify_key=user_table.get_verify_key_info(name='verify_key')[0]['value']
+        
         if db_verify_key != verify_key:
             #key需要有效
             self.key_err=True
@@ -4094,7 +4120,7 @@ class interfaceHandler(mainHandler):
         return self.write(json.dumps(groupinfo))
         
     def asset_search(self):
-        '''self-method'''
+        '''self-method::资产查询接口'''
         #资产查询
         info=user_table.assets_search(line=self.line, product=self.product,
                                     app=self.app, idc=self.idc, other_key=self.other_key, iplist=self.iplist)
@@ -4106,24 +4132,24 @@ class interfaceHandler(mainHandler):
         return self.write(info_str)
 
     def group_member_add(self):
-        '''self-method'''
+        '''self-method::主机组成员添加接口'''
         #组成员导入,可以配合资产查询使用
         #assetapp为资产的app, app为主机组分类
         return self.add_info_groupmember_html()
     
     def get_server_loginfo(self):
-        '''self-method'''
+        '''self-method::获取服务器登录信息接口'''
         self.login_check_key=['line', 'product', 'app', 'idc', 'owner']
         return self.write(json.dumps(self.get_server_login_info(self.iplist), ensure_ascii=False))
         
     def get_server_info(self):
-        '''self-method'''
+        '''self-method::获取主机组成员信息接口'''
         info=self.get_host_info()
         iplist=[i.get('member') for i in info]                      
         return self.write(json.dumps(iplist))
         
     def add_informationcollect(self):
-        '''self-method'''
+        '''self-method::信息收集接口'''
         id=self.args.get('template_id')
         ip=self.args.get('ip')
         info=self.args.get('info')
@@ -4155,7 +4181,7 @@ class interfaceHandler(mainHandler):
         return self.write(json.dumps(self.do_get_servergroup_info(), ensure_ascii=False))
 
     def fault_add(self):
-        '''self-method'''
+        '''self-method::故障信息添加接口'''
         ip=self.args.get('ip')
         key=self.args.get('key')
         name=self.args.get('name')
@@ -4181,6 +4207,7 @@ class interfaceHandler(mainHandler):
                 log.warn('lineno:' + str(sys._getframe().f_lineno)+": "+str(sys.exc_info()))
 
     def post(self):
+        self.get()
         self.finish()
 
 class eagledaemon(Daemon):
@@ -4210,6 +4237,7 @@ class eagledaemon(Daemon):
         httpserver=tornado.httpserver.HTTPServer(app)
         httpserver.max_buffer_size=3048576000
         httpserver.listen(options.port)
+        ioloop.PeriodicCallback(do_periodicTask, 90000).start()
         tornado.ioloop.IOLoop.instance().start()
 
         
@@ -4228,7 +4256,54 @@ def getconf(cfg, attrname=None, attrvalue=None):
             info[child_node.nodeName]=attr
 
     return  info
+    
+def fetch_response(response):
+    pass
+    
+def do_periodicTask():
+    while not taskque.empty():
+        data=taskque.get(False)
+        if not data:
+            break
 
+        type=data.get('type')
+        #平台审计
+        if type in ['add_history']:
+            method=data.get('method')
+            clsname=data.get('clsname')
+            remote_ip=data.get('remote_ip')
+            c_user=data.get('c_user')
+            requestdata=comm_lib.obj_to_json(data.get('requestdata'))
+            verify_key=data.get('verify_key')
+            if not verify_key:
+                verify_key=user_table.get_verify_key_info(name='verify_key')[0]['value']
+            template_id='platform_history'
+            
+            try:
+                fn_doc=str(getattr(globals().get(clsname), method).__doc__).strip()
+            except:
+                continue
+
+            _doclist=fn_doc.split('::')
+            if len(_doclist) < 1:
+                continue
+            _doc=_doclist[1]
+            if clsname == 'mainHandler':
+                skey=c_user
+            elif clsname == 'interfaceHandler':
+                skey=remote_ip
+            else:
+                continue
+
+            info='''remote_ip=>%s:::c_user=>%s:::method=>%s:::method_doc=>%s:::requestdata=>%s''' % (remote_ip, c_user, method, _doc, requestdata)
+            key='''[%s]%s''' % (skey, _doc)
+            request = tornado.httpclient.HTTPRequest(
+                url='http://%s:%s/interface/add_informationcollect'   % (tornado_ip, tornado_port), 
+                method='POST', 
+                body='''ip=%s&template_id=%s&info=%s&requesttype=%s&verify_key=%s''' % (key, template_id, info, template_id, verify_key),
+                validate_cert=False) 
+            tornadoClient=tornado.httpclient.AsyncHTTPClient()
+            return tornadoClient.fetch(request, fetch_response)
     
 def queue(n=None):
     if not n:
@@ -4328,7 +4403,7 @@ if __name__=="__main__":
     dbinfo=comm_lib.get_db_info(p_dbcfg)
 
     user_table=user_table.user_table(dbinfo["ip"], dbinfo["port"], dbinfo["db_name"], dbinfo["user"], encrypt.decode_pwd(dbinfo["pwd"]))
-
+    taskque=queue()
     if not time_check():
        log.err('os and db time cmp err.')
        sys.exit()
