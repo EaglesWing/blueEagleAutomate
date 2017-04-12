@@ -777,7 +777,7 @@ mainmodule.directive('localsearch',function(){
                         keyselector='div.item'
                         ttm=tdm.find(selector)
                     }else if(id=="serverprivilege"){
-                        var selector="td.privilege:contains("+value+")"
+                        var selector="td#serverprivilege:contains("+value+")"
                     }else if(id=="collecttemplate"){
                         var selector="td.template_id:contains("+value+"),td.des:contains("+value+")"
                     }
