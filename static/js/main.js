@@ -5698,7 +5698,7 @@ mainmodule.directive('servergroup',function(){
                     scope.$parent.breadcrumblist[id]={key:name, des:des}
                     scope.$parent.$apply(scope.$parent.breadcrumblist)
                     if(id!="line"){
-                        if(stype=='hostprivilege'&&id!='server'){
+                        if((stype=='hostprivilege'||stype=='hostprivilegelist')&&id!='server'){
                             return
                         }else if(stype=='hostprivilegelist'){
                             dt['stype']=stype
