@@ -79,6 +79,7 @@ class transport_doread_replace(tcp.Connection):
         
         self.socket = skt
         self.socket.setblocking(0)
+        self.socket.setsockopt(socket.IPPROTO_TCP, socket.SO_KEEPALIVE, 1)
         self.fileno=self.socket.fileno()
         self.protocol=protocol
         

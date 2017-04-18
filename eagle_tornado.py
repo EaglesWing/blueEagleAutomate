@@ -516,14 +516,14 @@ class mainHandler(baseHandler):
 
     def get_server_privilegelist_main_page(self):
         '''
-        self-privilege::主机权限信息主界面::主机管理-权限信息
+        self-privilege::权限信息主界面::主机管理-权限信息
         '''
         self.args['stype']="hostprivilegelist"
         return self.get_servergroup_main_page()
         
     def get_server_privilege_main_page(self):
         '''
-        self-privilege::主机权限配置主界面::主机管理-权限配置
+        self-privilege::权限配置主界面::主机管理-权限配置
         '''
         self.args['stype']="hostprivilege"
         return self.get_servergroup_main_page()

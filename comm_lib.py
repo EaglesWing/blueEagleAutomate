@@ -456,6 +456,7 @@ class sock_client:
         #recv非阻塞
         self.s.setblocking(0)
         self.s.settimeout(10)
+        self.s.setsockopt(socket.IPPROTO_TCP, socket.SO_KEEPALIVE, 1)
         
     def conn(self):
         try:
