@@ -94,7 +94,7 @@
                 </thead>
                 <tbody name="taskhistory" gettaskhistory>
                     <tr id="taskhistory" pageid="{{l.pid}}" pag="{{l.pagination}}" key="{{l.pid}}" ng-repeat="l in taskmanager.taskhistory.taskhistorylist.taskhistoryinfo" trhandle>
-                        <td keyname="{{x.value}}" class="{{x.key}}" ng-repeat="x in l.list" id="taskhistory" tdlable>{{x.value}}</td>
+                        <td keyname="{{x.value}}" class="{{x.key}}" ng-class="{hide:x.key == 'id'||x.key == 'custom_name'||x.key == 'custom_type'||x.key == 'task_type'||x.key == 'timestatus' || x.key=='create_time'}" ng-repeat="x in l.list" id="taskhistory" tdlable>{{x.value}}</td>
                         <td class="opertion">
                             <button id="taskhistory" class="ui blue basic button" newpage>详情</button>
                             <div class="ui buttons">

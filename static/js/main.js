@@ -347,7 +347,28 @@ mainmodule.controller('mainctrl', function($scope, commservice, $compile){
         'ready':'blue',
         'success':'green',
         'done':'green',
-    }
+    };
+    $scope.task_history_stateset=function(dm){
+        var state=dm.attr('keyname')
+        var cl=$scope.statelist[state]
+        if(state=="ready"){
+            var cl='blue'
+            var rdtxt=dm.parent().find('.timestatus').text().trim()
+            if(rdtxt==0||rdtxt.match(/^-/)){
+                rdtxt="任务异常"
+            }else{
+                rdtxt='倒计时 '+rdtxt + ' s'
+            }
+            dm.text(rdtxt)
+        }
+        dm.css('color', cl)
+        dm.parent().find('.buttons button').removeClass('disabled')
+        if(state=="running"){
+            dm.parent().find('.tasktimemodify,.taskrestart').addClass('disabled')
+        }else if(state=='done'){
+            dm.parent().find('.buttons button').addClass('disabled')
+        }
+    };
     $scope.check_iplist=[];
     $scope.data_check=function(data){
         for(k in data){
@@ -382,6 +403,15 @@ mainmodule.controller('mainctrl', function($scope, commservice, $compile){
             }
         }
         $scope.servergroupevent()
+    };
+    $scope.task_history_refresh=function(otd, td){
+        angular.forEach(td, function(id){
+            var ttm=angular.element('.taskhistorypage table tbody[name="taskhistory"] tr:eq('+td.indexOf(id)+')').find('td.status')
+            otd[td.indexOf(id)]['list'][9]['value']=id['list'][9]['value']
+            setTimeout(function(){
+                $scope.task_history_stateset(ttm)
+            }, 2)
+        })
     };
     $scope.get_pagination_info=function(pdm, pageid, plen, id, name, style){
         if(style==undefined){
@@ -655,7 +685,7 @@ mainmodule.directive('gettaskhistory',function(){
         scope:{},
         restrict:'A',
         link:function(scope, element, attrs){
-            var uphtm='<tbody name="taskhistory"  list="taskmanager.taskhistory.taskhistorylist.taskhistoryinfo" repeatdataupdate></tbody>'
+            var uphtm='<tbody name="taskhistory"  loadtype="refresh"  list="taskmanager.taskhistory.taskhistorylist.taskhistoryinfo" repeatdataupdate></tbody>'
             scope.$parent.compile(uphtm)(scope.$parent)
             var a=window.setInterval(function(){
                 if(angular.element('.taskhistorypage').length==0){
@@ -811,6 +841,8 @@ mainmodule.directive('repeatdataupdate',function(){
             var id=element.attr('list')
             var name=element.attr('name')
             var idd=element.attr('id')
+            var loadtype=element.attr('loadtype')
+            
             if(id=="privilege.key.keylist"){
                 var url='get_keylist'
             }
@@ -897,14 +929,17 @@ mainmodule.directive('repeatdataupdate',function(){
                     }
 
                 }else if(id=='taskmanager.taskcustom.taskinfolist.taskinfo'||name=='taskrelevancehistory'||name=="taskhistory"){
-                    scope.list=d['data']
                     var plen=Math.ceil(d['data_len']/d['tr_len'])
                     var pdm=angular.element('tbody[name="'+name+'"]')
 
                     var pageid=undefined
                     var tidd=name
-
-                    scope.$parent.get_pagination_info(pdm, pageid, plen, tidd, name)
+                    if(name=="taskhistory"&&loadtype=="refresh"){
+                        scope.$parent.task_history_refresh(scope.list, d['data'])
+                    }else{
+                        scope.list=d['data']
+                        scope.$parent.get_pagination_info(pdm, pageid, plen, tidd, name)
+                    }
                     scope.$parent.taskcustomkey=''
 
                 }else if(name=="serverprivilegedetails"){
@@ -2018,37 +2053,19 @@ mainmodule.directive('tdlable',function(){
                     compile(element.parent().find('td.opertion'))(scope.$parent)
                 }else if(id=="taskhistory"){
                     if(['id', 'custom_name', 'custom_type', 'task_type' , 'timestatus', 'create_time'].indexOf(cls)!=-1){
-                        element.hide() 
+                        //界面抖动,放到ng-class里隐藏
+                        //element.hide() 
                     }
 
                     if(cls=='task_name'){
                         var custom_name=element.parent().find('.custom_name').text().trim()
-                        if(custom_name){
-                            element.parent().find('.custom_name').show()
+                        if(custom_name && custom_name!= 'None' ){
+                            element.parent().find('.custom_name').removeClass('hide').show()
                             element.hide()
                         }
                     }
                     if(cls=="status"){
-                        var state=element.attr('keyname')
-                        var cl=scope.$parent.statelist[state]
-                        if(state=="ready"){
-                            var cl='blue'
-                            var rdtxt=element.parent().find('.timestatus').text().trim()
-                            if(rdtxt==0||rdtxt.match(/^-/)){
-                                rdtxt="任务异常"
-                            }else{
-                                rdtxt='倒计时 '+rdtxt + ' s'
-                            }
-                            element.text(rdtxt)
-                        }
-                        element.css('color', cl)
-                        element.parent().find('.buttons button').removeClass('disabled')
-                        if(state=="running"){
-                            element.parent().find('.tasktimemodify,.taskrestart').addClass('disabled')
-                        }else if(state=='done'){
-                            element.parent().find('.buttons button').addClass('disabled')
-                        }
-                        
+                        scope.$parent.task_history_stateset(element)
                     }else{
                         element.removeAttr('keyname')
                     }
@@ -2232,7 +2249,7 @@ mainmodule.directive('getserversdata',function(){
             
             setTimeout(function(){
                 var task_name=scope.$parent.task_name
-                var html='<repeatdataupdate id="taskservershistory" name="serverdetails" list="task.taskhistory.servers.'+line+'_and_'+product+'_and_'+app+'_and_'+group+'" ></repeatdataupdate>'
+                var html='<repeatdataupdate id="taskservershistory" loadtype="refresh" name="serverdetails" list="task.taskhistory.servers.'+line+'_and_'+product+'_and_'+app+'_and_'+group+'" ></repeatdataupdate>'
                 compile(html)(scope.$parent)
                 
                 window.setInterval(function(){
@@ -4924,7 +4941,7 @@ mainmodule.directive('textareaset',function(){
                     dom.css({
                         'height': '20em',
                         'position': 'absolute',
-                        //'z-index': '9999',
+                        'z-index': '9999',
                         'width':wd
                     })
                     element.next().css({
@@ -4935,6 +4952,7 @@ mainmodule.directive('textareaset',function(){
                         dom.css({
                             'position': 'relative',
                             'width':'100%',
+                            'z-index': '0',
                             'height': 'inherit'
                         })
                         element.next().css({
